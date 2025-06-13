@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "AI Launcher",
+  "version": "1.0",
+  "description": "ショートカットキーで特定のサイトを専用ウィンドウで開く",
+  "permissions": ["commands", "storage", "windows"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "open_launcher": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Space"
+      },
+      "description": "ランチャーを開く"
+    }
+  },
+  "action": {
+    "default_popup": "launcher.htm"
+  }
+}
