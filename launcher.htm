@@ -7,24 +7,87 @@
     <script src="launcher.js" defer></script>
     <style>
         body {
-            align-items: center;
-            font-size: 24px;
+            display: flex; /* Use flexbox for centering */
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center horizontally */
+            justify-content: center; /* Center vertically */
+            min-height: 100vh; /* Ensure body takes full viewport height */
+            font-size: 20px; /* Slightly reduce base font size for better fit */
             text-align: center;
-            background: #121212;
-            color: white;
+            background: #1e1e1e; /* Slightly lighter dark background */
+            color: #e0e0e0; /* Lighter text color */
+            font-family: Arial, sans-serif; /* Specify a common sans-serif font */
+            padding: 20px; /* Add some padding around the content */
+            margin: 0; /* Remove default body margin */
+        }
+
+        h2 {
+            color: #64B5F6; /* A light blue color for the header */
+            margin-bottom: 30px; /* Add more space below the header */
+        }
+
+        ul {
+            list-style-type: none; /* Remove default bullet points */
+            padding: 0;
+            width: 100%; /* Allow ul to take width for centering li content */
+            max-width: 350px; /* Max width for the list */
+        }
+
+        li {
+            background: #2a2a2a; /* Darker background for list items */
+            border: 1px solid #333; /* Subtle border */
+            border-radius: 8px; /* Rounded corners */
+            margin-bottom: 12px; /* Space between list items */
+            padding: 15px; /* Padding inside list items */
+            display: flex; /* Use flex to align items in li */
+            align-items: center; /* Vertically align items in li */
+            transition: background-color 0.3s ease; /* Smooth background transition */
+        }
+
+        li:hover {
+            background-color: #333333; /* Slightly lighter background on hover */
+        }
+
+        .shortcut-key {
+            font-weight: bold;
+            color: #FFD700; /* Gold color for shortcut key */
+            margin-right: 15px; /* Space between shortcut and link */
+            min-width: 30px; /* Ensure consistent width for shortcut key display */
+            text-align: left;
+        }
+
+        a {
+            text-decoration: none;
+            color: #82aaff; /* A nice blue for links */
+            font-weight: 500;
+            transition: color 0.3s ease; /* Smooth color transition */
+        }
+
+        a:hover {
+            color: #c9dfff; /* Lighter blue on hover */
+            text-decoration: underline;
+        }
+
+        #keyDisplay {
+            margin-top: 30px; /* Space above the key display */
+            font-size: 16px; /* Smaller font for this message */
+            color: #FF6B6B; /* A reddish color for error/info messages */
         }
     </style>
 </head>
 <body>
     <h2>chatAI launcher</h2>
     <ul>
-        <li>C: <a href="https://chatgpt.com/" target="_blank">ChatGPT</a></li>
-        <li>G: <a href="https://gemini.google.com/" target="_blank">Gemini</a></li>
-        <li>P: <a href="https://www.perplexity.ai/" target="_blank">Perplexity</a></li>
-        <li>X: <a href="https://grok.com/" target="_blank">Grok</a></li>
-        <li>M: <a href="https://copilot.microsoft.com/" target="_blank">MS copilot</a></li>
-        <li>B: <a href="https://www.bing.com/images/create" target="_blank">Image Creator</a></li>
-        <li>F: <a href="https://felo.ai/" target="_blank">Felo</a></li>
+        <li><span class="shortcut-key">B:</span> <a href="https://www.bing.com/images/create" target="_blank">Image Creator</a></li>
+        <li><span class="shortcut-key">C:</span> <a href="https://chatgpt.com/" target="_blank">ChatGPT</a></li>
+        <li><span class="shortcut-key">F:</span> <a href="https://felo.ai/" target="_blank">Felo</a></li>
+        <li><span class="shortcut-key">G:</span> <a href="https://gemini.google.com/" target="_blank">Gemini</a></li>
+        <li><span class="shortcut-key">J:</span> <a href="https://jules.ai/" target="_blank">Jules</a></li>
+        <li><span class="shortcut-key">K:</span> <a href="https://claude.ai/" target="_blank">Claude</a></li>
+        <li><span class="shortcut-key">M:</span> <a href="https://copilot.microsoft.com/" target="_blank">MS copilot</a></li>
+        <li><span class="shortcut-key">P:</span> <a href="https://www.perplexity.ai/" target="_blank">Perplexity</a></li>
+        <li><span class="shortcut-key">S:</span> <a href="https://genspark.ai/" target="_blank">Genspark</a></li>
+        <li><span class="shortcut-key">X:</span> <a href="https://grok.com/" target="_blank">Grok</a></li>
     </ul>
     <p id="keyDisplay"></p>
 </body>
