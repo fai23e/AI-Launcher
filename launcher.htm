@@ -7,86 +7,95 @@
     <script src="launcher.js" defer></script>
     <style>
         body {
-            display: flex; /* Use flexbox for centering */
-            flex-direction: column; /* Stack items vertically */
-            align-items: center; /* Center horizontally */
-            justify-content: center; /* Center vertically */
-            min-height: 100vh; /* Ensure body takes full viewport height */
-            font-size: 18px; /* Slightly reduce base font size for better fit with descriptions */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-size: 16px; /* ベースフォントを少し縮小してコンパクト化に対応 */
             text-align: center;
-            background: #1e1e1e; /* Slightly lighter dark background */
-            color: #e0e0e0; /* Lighter text color */
-            font-family: Arial, sans-serif; /* Specify a common sans-serif font */
-            padding: 20px; /* Add some padding around the content */
-            margin: 0; /* Remove default body margin */
+            background: #1e1e1e;
+            color: #e0e0e0;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
         }
 
         h2 {
-            color: #64B5F6; /* A light blue color for the header */
-            margin-bottom: 25px; /* Adjust space below the header */
+            color: #64B5F6;
+            margin-bottom: 20px; /* 少し調整 */
+            font-size: 1.7em; /* 少し調整 */
         }
 
         ul {
-            list-style-type: none; /* Remove default bullet points */
+            list-style-type: none;
             padding: 0;
-            width: 100%; /* Allow ul to take width for centering li content */
-            max-width: 480px; /* Max width for the list, increased to accommodate descriptions */
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* 2列均等幅 */
+            gap: 15px; /* アイテム間の隙間 */
+            max-width: 660px; /* ウィンドウ幅700pxを考慮した最大幅 */
+            width: 100%;
         }
 
         li {
-            background: #2a2a2a; /* Darker background for list items */
-            border: 1px solid #333; /* Subtle border */
-            border-radius: 8px; /* Rounded corners */
-            margin-bottom: 12px; /* Space between list items */
-            padding: 15px 20px; /* Padding inside list items, adjusted for more horizontal space */
-            display: flex; /* Use flex to align items in li */
-            align-items: center; /* Vertically align items in li */
-            transition: background-color 0.3s ease; /* Smooth background transition */
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 12px; /* パディングを少し調整 */
+            display: flex;
+            align-items: flex-start; /* 説明文が複数行になることを考慮し、上揃えに */
+            text-align: left; /* li内のテキストも左揃えを基本に */
+            transition: background-color 0.3s ease;
+            /* min-height: 90px; */ /* アイテムの高さを揃えたい場合に検討 */
         }
 
         li:hover {
-            background-color: #333333; /* Slightly lighter background on hover */
+            background-color: #333333;
         }
 
         .shortcut-key {
             font-weight: bold;
-            color: #FFD700; /* Gold color for shortcut key */
-            margin-right: 15px; /* Space between shortcut and service-info */
-            min-width: 30px; /* Ensure consistent width for shortcut key display */
-            text-align: left; /* Keep text aligned left */
+            color: #FFD700;
+            margin-right: 10px; /* 少し調整 */
+            min-width: 25px; /* 少し調整 */
+            font-size: 0.9em; /* 少し調整 */
+            padding-top: 3px; /* align-items: flex-start に伴う微調整。サービス名との垂直位置合わせ */
         }
 
         .service-info {
             display: flex;
-            flex-direction: column; /* Stack service name and description vertically */
-            align-items: flex-start; /* Align items to the left */
-            text-align: left; /* Ensure text within is left-aligned */
-            flex-grow: 1; /* Allow service-info to take remaining space */
+            flex-direction: column;
+            align-items: flex-start;
+            /* text-align: left; は親のliから継承されるので不要な場合も */
+            flex-grow: 1; /* 残りのスペースを埋める */
         }
 
-        .service-info a { /* Targeting 'a' within 'service-info' */
+        .service-info a { /* サービス名 */
             text-decoration: none;
-            color: #82aaff; /* A nice blue for links */
-            font-weight: 500; /* Original font-weight */
-            font-size: 1.1em; /* Slightly larger font for the service name */
-            transition: color 0.3s ease; /* Smooth color transition */
+            color: #82aaff;
+            font-weight: 500;
+            font-size: 1em; /* 少しフォントを小さく */
+            margin-bottom: 4px; /* 説明文との間隔 */
+            transition: color 0.3s ease;
         }
 
-        .service-info a:hover { /* Targeting 'a:hover' within 'service-info' */
-            color: #c9dfff; /* Lighter blue on hover */
+        .service-info a:hover {
+            color: #c9dfff;
             text-decoration: underline;
         }
 
         .description {
-            font-size: 0.85em; /* Slightly smaller for description */
-            color: #b0b0b0;  /* Slightly lighter grey for description */
-            margin-top: 5px; /* Space between service name and description */
+            font-size: 0.8em; /* フォントを小さく */
+            color: #b0b0b0;
+            line-height: 1.35; /* 行間を少し調整 */
+            overflow-wrap: break-word; /* 長い単語の折り返し */
+            word-break: break-word; /* 必要に応じて追加 */
         }
 
         #keyDisplay {
-            margin-top: 30px; /* Space above the key display */
-            font-size: 16px; /* Smaller font for this message */
-            color: #FF6B6B; /* A reddish color for error/info messages */
+            margin-top: 25px; /* 少し調整 */
+            font-size: 1em; /* bodyのfont-sizeに合わせるか、少し小さめにする */
+            color: #FF6B6B;
         }
     </style>
 </head>
@@ -97,70 +106,70 @@
             <span class="shortcut-key">B:</span>
             <div class="service-info">
                 <a href="https://www.bing.com/images/create" target="_blank">Image Creator</a>
-                <span class="description">Microsoft Bingが提供する画像生成AI</span>
+                <span class="description">アイデアからユニークな画像を生成したいとき。DALL·Eベース。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">C:</span>
             <div class="service-info">
                 <a href="https://chatgpt.com/" target="_blank">ChatGPT</a>
-                <span class="description">OpenAIが開発した対話型AIモデル</span>
+                <span class="description">文章作成、ブレインストーミング、複雑なトピックの要約など、汎用的な対話と思考支援が必要なとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">F:</span>
             <div class="service-info">
                 <a href="https://felo.ai/" target="_blank">Felo</a>
-                <span class="description">Felo.aiによるリアルタイムAI翻訳・文字起こしツール</span>
+                <span class="description">会議や動画のリアルタイム翻訳・文字起こしが必要なとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">G:</span>
             <div class="service-info">
                 <a href="https://gemini.google.com/" target="_blank">Gemini</a>
-                <span class="description">GoogleによるマルチモーダルAIモデル</span>
+                <span class="description">マルチモーダルな入力（テキスト、画像等）で高度な推論や情報整理をしたいとき。Googleサービスとの連携。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">J:</span>
             <div class="service-info">
                 <a href="https://jules.google.com/" target="_blank">Jules</a>
-                <span class="description">Googleが開発中のソフトウェアエンジニアリング支援AI</span>
+                <span class="description">ソフトウェア開発のコーディング支援、デバッグ、ドキュメント作成などでサポートが欲しいとき。(Google開発)</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">K:</span>
             <div class="service-info">
                 <a href="https://claude.ai/" target="_blank">Claude</a>
-                <span class="description">Anthropicが開発したAIアシスタント</span>
+                <span class="description">長文の読解・要約、倫理的な配慮が必要な文章作成、自然な対話を行いたいとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">M:</span>
             <div class="service-info">
                 <a href="https://copilot.microsoft.com/" target="_blank">MS copilot</a>
-                <span class="description">Microsoftが提供するAI搭載アシスタント</span>
+                <span class="description">Microsoft 365アプリとの連携、Bing検索ベースの最新情報取得、日常業務のサポートが必要なとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">P:</span>
             <div class="service-info">
                 <a href="https://www.perplexity.ai/" target="_blank">Perplexity</a>
-                <span class="description">会話型AI検索エンジン</span>
+                <span class="description">正確な情報源を伴う回答や、特定のトピックに関する深い調査をしたいとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">S:</span>
             <div class="service-info">
                 <a href="https://genspark.ai/" target="_blank">Genspark</a>
-                <span class="description">AIを活用した多目的プラットフォーム</span>
+                <span class="description">新しいアイデアの探求や、多様なタスクに対応できるAIを探しているとき。</span>
             </div>
         </li>
         <li>
             <span class="shortcut-key">X:</span>
             <div class="service-info">
                 <a href="https://grok.com/" target="_blank">Grok</a>
-                <span class="description">xAIによって開発されたリアルタイム情報アクセス可能なAI</span>
+                <span class="description">最新の出来事やリアルタイムの情報を元にした回答、X(旧Twitter)の情報を活用したいとき。</span>
             </div>
         </li>
     </ul>

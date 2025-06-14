@@ -73,59 +73,57 @@ document.addEventListener("keydown", (event) => {
 });
 
 /**
- * 指定されたURLを新しいウィンドウで開く関数
+ * 指定されたURLを新しいウィンドウで開く関数 (最大化状態で開く)
  * @param {string} url 開くURL
  * @param {function} callback ページを開いた後に実行するコールバック関数
  */
 function openPage(url, callback) {
-    console.log(`デバッグ用：新しいページを開きます: ${url}`);
+    console.log(`新しいページを開きます: ${url}`);
     const windowOptions = {
         url: url,
-        type: "popup", // ポップアップウィンドウとして開く
-        width: 1280,   // ウィンドウの幅
-        height: 900,  // ウィンドウの高さ
-        top: 0,       // ウィンドウの表示位置（上端）
-        left: 0,      // ウィンドウの表示位置（左端）
+        type: "popup", // type は "popup" のままでも state: "maximized" は機能するはず
+        width: 1280,   // state: "maximized" により上書きされるが、フォールバック用に残すことも検討可
+        height: 900,  // 同上
+        top: 0,       // 同上
+        left: 0,      // 同上
+        state: "maximized" // ウィンドウを最大化状態で開く
     };
 
-    // 新しいウィンドウを作成
     chrome.windows.create(windowOptions, (window) => {
         if (chrome.runtime.lastError) {
-            console.error("デバッグ用：新しいウィンドウの作成失敗:", chrome.runtime.lastError.message);
-            if (callback) callback(); // エラー時でもコールバックを実行してランチャーを閉じる
+            console.error("新しいウィンドウの作成に失敗しました:", chrome.runtime.lastError.message);
+            if (callback) callback(); // エラー時でもランチャーを閉じるためにコールバックを呼ぶ
             return;
         }
         if (window) {
-            console.log(`デバッグ用：新しいウィンドウが作成されました ID: ${window.id}`);
-            // background.jsに新しいウィンドウ情報を追加するメッセージを送信
-            chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id }, () => {
+            console.log(`新しいウィンドウがID: ${window.id} で作成されました。状態: ${window.state}`); // 状態もログに出力
+            // サービスウィンドウIDをバックグラウンドに送信して管理
+            chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id }, (response) => {
                 if (chrome.runtime.lastError) {
-                    console.error("デバッグ用：backgroundへのメッセージ送信エラー (addWindow):", chrome.runtime.lastError.message);
+                    console.error("ウィンドウ情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
                 }
-                // sendMessageの結果に関わらず、ウィンドウは既に作成されているためコールバックを実行
+                // sendMessageの成否に関わらず、ウィンドウ作成後のコールバックを実行
                 if (callback) callback();
             });
-            // ウィンドウが閉じられた際のリスナーを追加
+
+            // ウィンドウが閉じられたときのイベントリスナー
             chrome.windows.onRemoved.addListener(function listener(windowId) {
-                // 該当のウィンドウが閉じられた場合のみ処理
                 if (windowId === window.id) {
-                    console.log(`デバッグ用：ウィンドウが閉じられました ID: ${windowId}`);
-                    // background.jsにウィンドウ情報を削除するメッセージを送信
+                    console.log(`ウィンドウ (ID: ${windowId}) が閉じられました。`);
                     chrome.runtime.sendMessage({ action: "removeWindow", windowId }, (response) => {
                         if (chrome.runtime.lastError) {
-                            console.error("デバッグ用：backgroundへのメッセージ送信エラー (removeWindow):", chrome.runtime.lastError.message);
-                            return;
+                            console.error("ウィンドウ削除情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
                         }
-                        if (response) {
+                        if (response) { // responseの存在を確認
                             console.log("デバッグ用：backgroundでウィンドウ削除メッセージが処理されました。", response);
                         }
                     });
-                    chrome.windows.onRemoved.removeListener(listener); // リスナーを削除
+                    chrome.windows.onRemoved.removeListener(listener);
                 }
             });
         } else {
-             // windowがnullでlastErrorがない、という稀なケース
-            console.warn("デバッグ用：エラーなしでウィンドウオブジェクトがnullでした。");
+            // window オブジェクトが取得できなかった場合
+            console.warn("ウィンドウオブジェクトが作成されませんでした。");
             if (callback) callback();
         }
     });
@@ -139,15 +137,11 @@ function closeLauncher() {
     chrome.runtime.sendMessage({ action: "closeLauncher" }, (response) => {
         if (chrome.runtime.lastError) {
             console.error("デバッグ用：closeLauncherメッセージの送信エラー:", chrome.runtime.lastError.message);
-            // フォールバックとして直接ウィンドウを閉じる試みは、コンテキストによって動作しない可能性があるため注意
-            // window.close(); // 拡張機能のポップアップでは推奨されない
             return;
         }
-        // responseが定義されているか、またsuccessプロパティを持つか確認することが推奨される
         if (response && response.success) {
             console.log("デバッグ用：ランチャーウィンドウクローズ要求の送信成功。");
         } else {
-            // 失敗した場合や応答がない場合は、その旨をログに出力
             console.warn("デバッグ用：ランチャーウィンドウクローズ要求が失敗したか、確認できませんでした。", response);
         }
     });
