@@ -84,7 +84,7 @@ function openLauncher() {
  */
 function createLauncherWindow() {
     const newWidth = 700;
-    const newHeight = 750;
+    const newHeight = 1000;
 
     chrome.system.display.getInfo((displayInfo) => {
         let calculatedLeft = 0;
