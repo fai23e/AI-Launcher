@@ -4,7 +4,7 @@ const urlMap = {
     'c': 'https://chatgpt.com/',
     'f': 'https://felo.ai/',
     'g': 'https://gemini.google.com/',
-    'j': 'https://jules.ai/',
+    'j': 'https://jules.google.com/',
     'k': 'https://claude.ai/',
     'm': 'https://copilot.microsoft.com/',
     'p': 'https://www.perplexity.ai/',

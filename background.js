@@ -79,36 +79,67 @@ function openLauncher() {
 }
 
 /**
- * 新しいランチャーウィンドウを作成する関数。
+ * 新しいランチャーウィンドウを画面中央に作成する関数。
+ * ディスプレイ情報を取得し、中央配置を試みます。失敗時はフォールバック処理を行います。
  */
 function createLauncherWindow() {
-  chrome.windows.create({
-    url: "launcher.htm", // ランチャーのHTMLファイル
-    type: "popup",       // ポップアップウィンドウとして表示
-    width: 400,          // 幅
-    height: 500,         // 高さ（新しいスタイルで見やすくなるよう調整済み）
-    top: 0,              // 表示位置（画面上部からのオフセット）。ユーザーの画面サイズや最後の位置を考慮することも可能
-    left: 0,             // 表示位置（画面左端からのオフセット）。同上
-    focused: true,       // 作成時にフォーカスする
-  }, (window) => {
-    if (chrome.runtime.lastError || !window) {
-      console.error("デバッグ用：ランチャーウィンドウの作成に失敗しました:", chrome.runtime.lastError?.message || "ウィンドウオブジェクトがnullです。");
-      launcherWindowId = null; // 作成失敗時はIDをnullに設定
-      return;
-    }
-    launcherWindowId = window.id; // 作成されたウィンドウのIDを保存
-    console.log("デバッグ用：ランチャーウィンドウが作成されました。ID:", launcherWindowId);
+    const newWidth = 700;
+    const newHeight = 750;
 
-    // ランチャーウィンドウが何らかの理由で閉じられた際のリスナー
-    chrome.windows.onRemoved.addListener(function listener(removedWindowId) {
-      // 閉じられたウィンドウがランチャーウィンドウであるか確認
-      if (removedWindowId === launcherWindowId) {
-        console.log("デバッグ用：ランチャーウィンドウ (ID:", launcherWindowId, ") が削除されました。");
-        launcherWindowId = null; // IDをリセット
-        chrome.windows.onRemoved.removeListener(listener); // リスナーをクリーンアップ
-      }
+    chrome.system.display.getInfo((displayInfo) => {
+        let calculatedLeft = 0;
+        let calculatedTop = 0;
+        let useFallback = false;
+
+        if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
+            console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message || "ディスプレイ情報が空です。");
+            useFallback = true;
+        } else {
+            // プライマリディスプレイを見つけるか、最初に見つかったディスプレイを使用
+            const primaryDisplay = displayInfo.find(display => display.isPrimary) || displayInfo[0];
+            const workArea = primaryDisplay.workArea;
+
+            // 中央配置のための計算
+            calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
+            calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
+
+            // 念のため、計算結果が画面外（特にマイナス座標）にならないように調整
+            if (calculatedLeft < workArea.left) calculatedLeft = workArea.left;
+            if (calculatedTop < workArea.top) calculatedTop = workArea.top;
+            // 右端や下端が画面外に出る場合も考慮（省略するが、より堅牢にするなら追加）
+        }
+
+        // ウィンドウ作成オプション
+        const windowOptions = {
+            url: "launcher.htm",
+            type: "popup",
+            width: newWidth,
+            height: newHeight,
+            left: useFallback ? 0 : calculatedLeft, // フォールバック時は左上
+            top: useFallback ? 0 : calculatedTop,   // フォールバック時は左上
+            focused: true,
+        };
+
+        chrome.windows.create(windowOptions, (window) => {
+            if (chrome.runtime.lastError || !window) {
+                console.error("デバッグ用：ランチャーウィンドウの作成に失敗しました:", chrome.runtime.lastError?.message || "ウィンドウオブジェクトがnullです。");
+                launcherWindowId = null; // 作成失敗時はIDをnullに設定
+                return;
+            }
+            launcherWindowId = window.id; // 作成されたウィンドウのIDを保存
+            console.log("デバッグ用：ランチャーウィンドウが作成されました。ID:", launcherWindowId, " 位置:", windowOptions.left, ",", windowOptions.top);
+
+            // ランチャーウィンドウが何らかの理由で閉じられた際のリスナー
+            chrome.windows.onRemoved.addListener(function listener(removedWindowId) {
+                // 閉じられたウィンドウがランチャーウィンドウであるか確認
+                if (removedWindowId === launcherWindowId) {
+                    console.log("デバッグ用：ランチャーウィンドウ (ID:", launcherWindowId, ") が削除されました。");
+                    launcherWindowId = null; // IDをリセット
+                    chrome.windows.onRemoved.removeListener(listener); // リスナーをクリーンアップ
+                }
+            });
+        });
     });
-  });
 }
 
 // 拡張機能の他の部分（例：launcher.js）からのメッセージリスナー
