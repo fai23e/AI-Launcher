@@ -73,59 +73,85 @@ document.addEventListener("keydown", (event) => {
 });
 
 /**
- * 指定されたURLを新しいウィンドウで開く関数 (最大化状態で開く)
+ * 指定されたURLを新しいウィンドウで開く関数 (画面中央に配置)
  * @param {string} url 開くURL
  * @param {function} callback ページを開いた後に実行するコールバック関数
  */
 function openPage(url, callback) {
     console.log(`新しいページを開きます: ${url}`);
-    const windowOptions = {
-        url: url,
-        type: "popup", // type は "popup" のままでも state: "maximized" は機能するはず
-        width: 1280,   // state: "maximized" により上書きされるが、フォールバック用に残すことも検討可
-        height: 900,  // 同上
-        top: 0,       // 同上
-        left: 0,      // 同上
-        state: "maximized" // ウィンドウを最大化状態で開く
-    };
+    const newWidth = 1280;
+    const newHeight = 900;
 
-    chrome.windows.create(windowOptions, (window) => {
-        if (chrome.runtime.lastError) {
-            console.error("新しいウィンドウの作成に失敗しました:", chrome.runtime.lastError.message);
-            if (callback) callback(); // エラー時でもランチャーを閉じるためにコールバックを呼ぶ
-            return;
-        }
-        if (window) {
-            console.log(`新しいウィンドウがID: ${window.id} で作成されました。状態: ${window.state}`); // 状態もログに出力
-            // サービスウィンドウIDをバックグラウンドに送信して管理
-            chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id }, (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error("ウィンドウ情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
-                }
-                // sendMessageの成否に関わらず、ウィンドウ作成後のコールバックを実行
-                if (callback) callback();
-            });
+    // ディスプレイ情報を取得して中央配置を計算
+    chrome.system.display.getInfo((displayInfo) => {
+        let calculatedLeft = 0;
+        let calculatedTop = 0;
+        let useFallback = false;
 
-            // ウィンドウが閉じられたときのイベントリスナー
-            chrome.windows.onRemoved.addListener(function listener(windowId) {
-                if (windowId === window.id) {
-                    console.log(`ウィンドウ (ID: ${windowId}) が閉じられました。`);
-                    chrome.runtime.sendMessage({ action: "removeWindow", windowId }, (response) => {
-                        if (chrome.runtime.lastError) {
-                            console.error("ウィンドウ削除情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
-                        }
-                        if (response) { // responseの存在を確認
-                            console.log("デバッグ用：backgroundでウィンドウ削除メッセージが処理されました。", response);
-                        }
-                    });
-                    chrome.windows.onRemoved.removeListener(listener);
-                }
-            });
+        if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
+            console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message || "ディスプレイ情報が空です。");
+            useFallback = true;
         } else {
-            // window オブジェクトが取得できなかった場合
-            console.warn("ウィンドウオブジェクトが作成されませんでした。");
-            if (callback) callback();
+            // プライマリディスプレイを見つけるか、最初に見つかったディスプレイを使用
+            const primaryDisplay = displayInfo.find(display => display.isPrimary) || displayInfo[0];
+            const workArea = primaryDisplay.workArea;
+
+            // 中央配置のための計算
+            calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
+            calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
+
+            // 計算結果が画面外にならないように調整
+            if (calculatedLeft < workArea.left) calculatedLeft = workArea.left;
+            if (calculatedTop < workArea.top) calculatedTop = workArea.top;
+            if (calculatedLeft + newWidth > workArea.width) calculatedLeft = workArea.width - newWidth;
+            if (calculatedTop + newHeight > workArea.height) calculatedTop = workArea.height - newHeight;
         }
+
+        const windowOptions = {
+            url: url,
+            type: "popup",
+            width: newWidth,
+            height: newHeight,
+            top: useFallback ? 0 : calculatedTop,
+            left: useFallback ? 0 : calculatedLeft,
+        };
+
+        chrome.windows.create(windowOptions, (window) => {
+            if (chrome.runtime.lastError) {
+                console.error("新しいウィンドウの作成に失敗しました:", chrome.runtime.lastError.message);
+                if (callback) callback();
+                return;
+            }
+            if (window) {
+                console.log(`新しいウィンドウがID: ${window.id} で作成されました。位置: ${windowOptions.left},${windowOptions.top}`);
+                // サービスウィンドウIDをバックグラウンドに送信して管理
+                chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.error("ウィンドウ情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
+                    }
+                    if (callback) callback();
+                });
+
+                // ウィンドウが閉じられたときのイベントリスナー
+                chrome.windows.onRemoved.addListener(function listener(windowId) {
+                    if (windowId === window.id) {
+                        console.log(`ウィンドウ (ID: ${windowId}) が閉じられました。`);
+                        chrome.runtime.sendMessage({ action: "removeWindow", windowId }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.error("ウィンドウ削除情報のバックグラウンドへの送信に失敗:", chrome.runtime.lastError.message);
+                            }
+                            if (response) {
+                                console.log("デバッグ用：backgroundでウィンドウ削除メッセージが処理されました。", response);
+                            }
+                        });
+                        chrome.windows.onRemoved.removeListener(listener);
+                    }
+                });
+            } else {
+                console.warn("ウィンドウオブジェクトが作成されませんでした。");
+                if (callback) callback();
+            }
+        });
     });
 }
 
