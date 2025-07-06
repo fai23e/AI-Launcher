@@ -10,6 +10,58 @@ h1, h2 {
     color: #333;
 }
 
+/* 新しい設定セクションのスタイル */
+.setting-section {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.setting-section h2 {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.setting-item input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+.setting-item textarea {
+    width: calc(100% - 22px); /* paddingとborderを考慮 */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box; /* paddingとborderをwidthに含める */
+    resize: vertical; /* 垂直方向のみリサイズ可能 */
+}
+
+/* プロンプト初期化ボタンのスタイル */
+.reset-btn {
+    background-color: #6c757d; /* グレー系の色 */
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-top: 10px; /* テキストエリアとの間隔 */
+}
+
+.reset-btn:hover {
+    background-color: #5a6268;
+}
+
 #site-list {
     margin-bottom: 20px;
 }

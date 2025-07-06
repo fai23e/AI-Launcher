@@ -16,11 +16,16 @@ chrome.runtime.onInstalled.addListener((details) => {
         chrome.storage.sync.set({ 
             sites: defaultSites,
             enableYoutubeGeminiButton: true,
-            youtubeGeminiPrompt: '要約して ${videoUrl}'
+            youtubeGeminiPrompt: 'この動画を要約して: ${videoUrl}'
         }, () => {
             console.log('デフォルトのサイトリストとYouTube Geminiボタン設定が保存されました。');
         });
     }
+});
+
+// 拡張機能アイコンがクリックされたときにオプションページを開く
+chrome.action.onClicked.addListener(() => {
+    chrome.tabs.create({ url: 'options.htm' });
 });
 
 // ランチャーウィンドウのIDを保持する変数。存在しない場合はnull。

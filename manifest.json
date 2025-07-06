@@ -22,7 +22,5 @@
       "description": "ランチャーを開く"
     }
   },
-  "action": {
-    "default_popup": "launcher.htm"
-  }
+  "action": {}
 }
