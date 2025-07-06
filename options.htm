@@ -9,6 +9,18 @@
     <h1>AI Launcher 設定</h1>
     <p>ランチャーに表示するサイトを管理します。</p>
 
+    <h2>YouTube Gemini 要約ボタン設定</h2>
+    <div class="setting-item">
+        <label for="enable-youtube-gemini-button">
+            <input type="checkbox" id="enable-youtube-gemini-button">
+            YouTube Gemini 要約ボタンを有効にする
+        </label>
+    </div>
+    <div class="setting-item">
+        <label for="youtube-gemini-prompt">要約プロンプト:</label>
+        <textarea id="youtube-gemini-prompt" rows="4" cols="50"></textarea>
+    </div>
+
     <h2>新しいサイトを追加</h2>
     <form id="add-site-form">
         <input type="text" id="new-key" placeholder="ショートカットキー (1文字)" maxlength="1" required>

@@ -4,6 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetSitesBtn = document.getElementById('reset-sites-btn');
     const toast = document.getElementById('toast-notification');
 
+    // New elements for YouTube Gemini button settings
+    const enableYoutubeGeminiButton = document.getElementById('enable-youtube-gemini-button');
+    const youtubeGeminiPrompt = document.getElementById('youtube-gemini-prompt');
+
     // 通知を表示する
     function showToast(message) {
         toast.textContent = message;
@@ -20,6 +24,28 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSites(sites);
         });
     }
+
+    // YouTube Gemini ボタン設定を読み込む
+    function loadYoutubeGeminiSettings() {
+        chrome.storage.sync.get(['enableYoutubeGeminiButton', 'youtubeGeminiPrompt'], (data) => {
+            enableYoutubeGeminiButton.checked = data.enableYoutubeGeminiButton !== false; // Default to true
+            youtubeGeminiPrompt.value = data.youtubeGeminiPrompt || '要約して ${videoUrl}'; // Default prompt
+        });
+    }
+
+    // YouTube Gemini ボタン設定を保存する
+    function saveYoutubeGeminiSettings() {
+        chrome.storage.sync.set({
+            enableYoutubeGeminiButton: enableYoutubeGeminiButton.checked,
+            youtubeGeminiPrompt: youtubeGeminiPrompt.value
+        }, () => {
+            showToast('YouTube Gemini ボタン設定を保存しました');
+        });
+    }
+
+    // イベントリスナー
+    enableYoutubeGeminiButton.addEventListener('change', saveYoutubeGeminiSettings);
+    youtubeGeminiPrompt.addEventListener('input', saveYoutubeGeminiSettings);
 
     // サイトのリストを描画する
     function renderSites(sites) {
@@ -200,5 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初期読み込み
     loadSites();
+    loadYoutubeGeminiSettings();
 });
 

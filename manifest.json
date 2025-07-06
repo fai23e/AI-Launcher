@@ -3,10 +3,16 @@
   "name": "AI Launcher",
   "version": "2.0",
   "description": "ショートカットキーで特定のサイトを専用ウィンドウで開く",
-  "permissions": ["commands", "storage", "windows", "system.display"],
+  "permissions": ["commands", "storage", "windows", "system.display", "activeTab", "clipboardWrite"],
   "background": {
     "service_worker": "background.js"
   },
+  "content_scripts": [
+    {
+      "matches": ["*://www.youtube.com/watch?v=*"],
+      "js": ["content_script.js"]
+    }
+  ],
   "options_page": "options.htm",
   "commands": {
     "open_launcher": {

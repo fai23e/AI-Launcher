@@ -13,8 +13,12 @@ chrome.runtime.onInstalled.addListener((details) => {
             { key: 's', name: 'Genspark', url: 'https://genspark.ai/', description: '新しいアイデアの探求や、多様なタスクに対応できるAI' },
             { key: 'x', name: 'Grok', url: 'https://grok.com/', description: '最新の出来事やリアルタイムの情報を元にした回答、人間らしい回答やX(旧Twitter)の情報を活用できる' }
         ];
-        chrome.storage.sync.set({ sites: defaultSites }, () => {
-            console.log('デフォルトのサイトリストが保存されました。');
+        chrome.storage.sync.set({ 
+            sites: defaultSites,
+            enableYoutubeGeminiButton: true,
+            youtubeGeminiPrompt: '要約して ${videoUrl}'
+        }, () => {
+            console.log('デフォルトのサイトリストとYouTube Geminiボタン設定が保存されました。');
         });
     }
 });
