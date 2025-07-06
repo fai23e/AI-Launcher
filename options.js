@@ -229,6 +229,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // {videoUrl} コピー機能
+    const copyVideoUrlEl = document.getElementById('copy-video-url');
+    if (copyVideoUrlEl) {
+        copyVideoUrlEl.addEventListener('click', () => {
+            navigator.clipboard.writeText('${videoUrl}').then(() => {
+                copyVideoUrlEl.textContent = 'コピーしました';
+                showToast('${videoUrl} をコピーしました');
+                setTimeout(() => {
+                    copyVideoUrlEl.textContent = '${videoUrl}';
+                }, 1200);
+            });
+        });
+    }
+
     // 初期読み込み
     loadSites();
     loadYoutubeGeminiSettings();
