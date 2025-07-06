@@ -1,9 +1,42 @@
+// 拡張機能インストール時にデフォルトのサイトリストをストレージに保存
+chrome.runtime.onInstalled.addListener((details) => {
+    if (details.reason === 'install') {
+        const defaultSites = [
+            { key: 'b', name: 'Image Creator', url: 'https://www.bing.com/images/create', description: 'アイデアからユニークな画像を生成したいとき。DALL·Eベース' },
+            { key: 'c', name: 'ChatGPT', url: 'https://chatgpt.com/', description: '文章作成、ブレインストーミング、複雑なトピックの要約など、万能的な対話と思考支援' },
+            { key: 'f', name: 'Felo', url: 'https://felo.ai/', description: '情報検索、会議や動画のリアルタイム翻訳・文字起こし' },
+            { key: 'g', name: 'Gemini', url: 'https://gemini.google.com/', description: 'マルチモーダルな入力（テキスト、画像等）で高度な推論や情報整理をしたいとき。Googleサービスとの連携' },
+            { key: 'j', name: 'Jules', url: 'https://jules.google.com/', description: 'ソフトウェア開発のコーディング支援、デバッグ、ドキュメント作成などでサポートが欲しいとき。(Google開発)' },
+            { key: 'k', name: 'Claude', url: 'https://claude.ai/', description: '長文の読解・要約、倫理的な配慮が必要な文章作成、自然な対話' },
+            { key: 'm', name: 'MS copilot', url: 'https://copilot.microsoft.com/', description: 'Microsoft 365アプリとの連携、Bing検索ベースの最新情報取得、日常業務のサポート' },
+            { key: 'p', name: 'Perplexity', url: 'https://www.perplexity.ai/', description: '正確な情報源を伴う回答や、特定のトピックに関する深い調査' },
+            { key: 's', name: 'Genspark', url: 'https://genspark.ai/', description: '新しいアイデアの探求や、多様なタスクに対応できるAI' },
+            { key: 'x', name: 'Grok', url: 'https://grok.com/', description: '最新の出来事やリアルタイムの情報を元にした回答、人間らしい回答やX(旧Twitter)の情報を活用できる' }
+        ];
+        chrome.storage.sync.set({ 
+            sites: defaultSites,
+            enableYoutubeGeminiButton: true,
+            youtubeGeminiPrompt: 'この動画を要約して: ${videoUrl}'
+        }, () => {
+            console.log('デフォルトのサイトリストとYouTube Geminiボタン設定が保存されました。');
+        });
+    }
+});
+
+// 拡張機能アイコンがクリックされたときにオプションページを開く
+chrome.action.onClicked.addListener(() => {
+    chrome.tabs.create({ url: 'options.htm' });
+});
+
 // ランチャーウィンドウのIDを保持する変数。存在しない場合はnull。
 let launcherWindowId = null;
-// ランチャーから開かれたページのURLのリスト
-let openedPageUrls = [];
-// openedPageUrlsに対応するウィンドウIDのリスト
-let openedPageIds = [];
+
+// ランチャーから開かれたページを管理するためのMap
+// URLをキーとしてウィンドウIDを保持
+const urlToIdMap = new Map();
+// ウィンドウIDをキーとしてURLを保持（逆引き用）
+const idToUrlMap = new Map();
+
 
 // manifest.jsonで定義されたキーボードショートカットのリスナー
 chrome.commands.onCommand.addListener((command) => {
@@ -144,91 +177,86 @@ function createLauncherWindow() {
 
 // 拡張機能の他の部分（例：launcher.js）からのメッセージリスナー
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("デバッグ用：backgroundでメッセージを受信しました:", message); // 受信したメッセージをログに出力
+  console.log("デバッグ用：backgroundでメッセージを受信しました:", message);
 
-  // ウィンドウが既に開いているか確認するアクション
-  if (message.action === "checkWindow") {
-    const { url } = message;
-    const idIndex = openedPageUrls.indexOf(url); // URLがリストに存在するか確認
+  switch (message.action) {
+    // ウィンドウが既に開いているか確認するアクション
+    case "checkWindow": {
+      const { url } = message;
+      const windowId = urlToIdMap.get(url);
 
-    if (idIndex !== -1) {
-      // URLがリストに存在する場合、対応するウィンドウIDを取得
-      const windowId = openedPageIds[idIndex];
-      chrome.windows.get(windowId, { populate: false }, (foundWindow) => {
-        if (chrome.runtime.lastError || !foundWindow) {
-          // ウィンドウが存在しない場合（例:手動で閉じられた）、リストから削除
-          console.warn(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウが見つかりません。リストから削除します。`, chrome.runtime.lastError?.message || "ウィンドウオブジェクトなし");
-          openedPageUrls.splice(idIndex, 1);
-          openedPageIds.splice(idIndex, 1);
-          sendResponse({ exists: false });
-        } else {
-          // ウィンドウが存在する場合
-          console.log(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウは存在します。`);
-          sendResponse({ exists: true, windowId: foundWindow.id });
-        }
-      });
-    } else {
-      // URLがリストに存在しない場合
-      console.log(`デバッグ用：URL ${url} のウィンドウは保存されていません。`);
-      sendResponse({ exists: false });
+      if (windowId) {
+        chrome.windows.get(windowId, { populate: false }, (foundWindow) => {
+          if (chrome.runtime.lastError || !foundWindow) {
+            console.warn(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウが見つかりません。Mapから削除します。`, chrome.runtime.lastError?.message || "ウィンドウオブジェクトなし");
+            urlToIdMap.delete(url);
+            idToUrlMap.delete(windowId);
+            sendResponse({ exists: false });
+          } else {
+            console.log(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウは存在します。`);
+            sendResponse({ exists: true, windowId: foundWindow.id });
+          }
+        });
+      } else {
+        console.log(`デバッグ用：URL ${url} のウィンドウは保存されていません。`);
+        sendResponse({ exists: false });
+      }
+      return true; // sendResponseが非同期に呼び出されることを示す
     }
-    return true; // sendResponseが非同期に呼び出されることを示す
 
-  // 新しいウィンドウ情報を追加するアクション
-  } else if (message.action === "addWindow") {
-    const { url, windowId } = message;
-    // 同じURLが既にリストにあるか確認
-    if (openedPageUrls.includes(url)) {
-        console.warn(`デバッグ用：URL ${url} は既にopenedPageUrlsに存在します。ウィンドウIDは ${openedPageIds[openedPageUrls.indexOf(url)]} かもしれません。${windowId} に更新します。`);
-        const existingIndex = openedPageUrls.indexOf(url);
-        openedPageIds[existingIndex] = windowId; // URLが既に存在する場合、ウィンドウIDを更新
-    } else {
-        openedPageUrls.push(url);
-        openedPageIds.push(windowId);
+    // 新しいウィンドウ情報を追加するアクション
+    case "addWindow": {
+      const { url, windowId } = message;
+      // 既存のURLに対する古いマッピングがあれば削除
+      if (urlToIdMap.has(url)) {
+        const oldWindowId = urlToIdMap.get(url);
+        idToUrlMap.delete(oldWindowId);
+        console.warn(`デバッグ用：URL ${url} は既に存在しました。古いウィンドウID ${oldWindowId} のマッピングを削除します。`);
+      }
+      urlToIdMap.set(url, windowId);
+      idToUrlMap.set(windowId, url);
+      console.log(`デバッグ用：ウィンドウが追加/更新されました: URL: ${url}, ID: ${windowId}`);
+      sendResponse({ success: true });
+      return false;
     }
-    console.log(`デバッグ用：ウィンドウが追加/更新されました: URL: ${url}, ID: ${windowId}`);
-    sendResponse({ success: true });
-    return false; // 同期レスポンス
 
-  // ウィンドウ情報を削除するアクション
-  } else if (message.action === "removeWindow") {
-    const { windowId } = message;
-    const index = openedPageIds.indexOf(windowId); // ウィンドウIDがリストに存在するか確認
-    if (index !== -1) {
-      const removedUrl = openedPageUrls.splice(index, 1)[0]; // URLリストからも削除
-      openedPageIds.splice(index, 1); // IDリストから削除
-      console.log(`デバッグ用：ウィンドウが削除されました: URL: ${removedUrl}, ID: ${windowId}`);
-    } else {
-      console.warn(`デバッグ用：追跡されていないウィンドウIDの削除が試みられました: ${windowId}`);
+    // ウィンドウ情報を削除するアクション
+    case "removeWindow": {
+      const { windowId } = message;
+      const url = idToUrlMap.get(windowId);
+      if (url) {
+        urlToIdMap.delete(url);
+        idToUrlMap.delete(windowId);
+        console.log(`デバッグ用：ウィンドウが削除されました: URL: ${url}, ID: ${windowId}`);
+      } else {
+        console.warn(`デバッグ用：追跡されていないウィンドウIDの削除が試みられました: ${windowId}`);
+      }
+      sendResponse({ success: true });
+      return false;
     }
-    sendResponse({ success: true });
-    return false; // 同期レスポンス
 
-  // ランチャーウィンドウを閉じるアクション
-  } else if (message.action === "closeLauncher") {
-    if (launcherWindowId !== null) {
-      chrome.windows.remove(launcherWindowId, () => {
-        if (chrome.runtime.lastError) {
-          console.error("デバッグ用：メッセージ経由でのランチャーウィンドウの削除に失敗しました:", chrome.runtime.lastError.message);
-          // 削除に失敗した場合でも、ウィンドウIDは孤立している可能性があるため、
-          // nullに設定するのは楽観的な回復試行。
-        } else {
-          console.log("デバッグ用：メッセージ経由でランチャーウィンドウが閉じられました。IDは:", launcherWindowId, "でした。");
-        }
-        launcherWindowId = null; // エラーの有無に関わらずIDをリセット（閉じる意図があったため）
-        sendResponse({ success: true }); // 削除試行後にレスポンスを送信
-      });
-    } else {
-      console.warn("デバッグ用：ランチャーを閉じるリクエストがありましたが、launcherWindowIdが設定されていません。");
-      sendResponse({ success: false, message: "閉じるべきランチャーウィンドウがありません。" });
+    // ランチャーウィンドウを閉じるアクション
+    case "closeLauncher": {
+      if (launcherWindowId !== null) {
+        chrome.windows.remove(launcherWindowId, () => {
+          if (chrome.runtime.lastError) {
+            console.error("デバッグ用：メッセージ経由でのランチャーウィンドウの削除に失敗しました:", chrome.runtime.lastError.message);
+          } else {
+            console.log("デバッグ用：メッセージ経由でランチャーウィンドウが閉じられました。IDは:", launcherWindowId, "でした。");
+          }
+          launcherWindowId = null;
+          sendResponse({ success: true });
+        });
+      } else {
+        console.warn("デバッグ用：ランチャーを閉じるリクエストがありましたが、launcherWindowIdが設定されていません。");
+        sendResponse({ success: false, message: "閉じるべきランチャーウィンドウがありません。" });
+      }
+      return true;
     }
-    return true; // sendResponseが非同期に呼び出されることを示す
+
+    default:
+      // 未知のアクション
+      console.warn("デバッグ用：未知のアクションを受信しました:", message.action);
+      return false; // 同期的に終了
   }
-
-  // 未処理のメッセージに対するデフォルトの戻り値。
-  // 非同期応答の可能性がある場合はtrue、すべてのパスが同期の場合はfalse。
-  // 上記の条件分岐を考慮すると、明示的に設定するのが安全。
-  // アクションが一致せず、sendResponseが呼び出されない場合、送信側のコールバックは発火しない。
-  // 必要に応じて、デフォルトで sendResponse({error: '不明なアクション'}) を追加することを検討。
-  return false; // 未処理の同期メッセージに対するデフォルト
 });

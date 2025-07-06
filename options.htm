@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>AI Launcher 設定</title>
+        <link rel="stylesheet" href="options.css">
+    </head>
+    <body>
+        <h1>AI Launcher 設定</h1>
+        <p>ランチャーに表示するサイトを管理します。</p>
+        <span>
+            ※「Uncaught Error: Extension context invalidated.」というエラーが出ることがありますが、既知の問題で動作には特に問題ないので気にしないでください。
+            <br>
+            このエラーは、youtubeのサイトがリロードされたときに発生することがあります。そのうち修正します。
+            <br>
+        </span>
+        <hr>
+    <h2>新しいサイトを追加</h2>
+    <form id="add-site-form">
+        <input type="text" id="new-key" placeholder="ショートカットキー (1文字)" maxlength="1" required>
+        <input type="text" id="new-name" placeholder="サイト名" required>
+        <input type="url" id="new-url" placeholder="URL" required>
+        <input type="text" id="new-description" placeholder="説明">
+        <button type="submit">追加</button>
+    </form>
+
+    <hr>
+
+    <div id="site-list">
+        <!-- サイトのリストはここに動的に生成されます -->
+    </div>
+
+    <hr>
+
+    <div class="setting-section">
+        <h2>YouTube Gemini 要約ボタン設定</h2>
+        <div class="setting-item">
+            <label for="enable-youtube-gemini-button">
+                <input type="checkbox" id="enable-youtube-gemini-button">
+                YouTube Gemini 要約ボタンを有効にする
+            </label>
+        </div>
+        <div class="setting-item">
+            <p>要約ボタンクリック時にコピーされる要約プロンプトをカスタマイズできます。</p>
+            <p>
+                <span id="copy-video-url" style="cursor:pointer; color:#1976d2; text-decoration:underline;">${videoUrl}</span>
+                は動画のURLに置き換えられます。
+            </p>
+            <label for="youtube-gemini-prompt">要約プロンプト:</label>
+            <textarea id="youtube-gemini-prompt" rows="4" cols="50"></textarea>
+            <button id="reset-youtube-gemini-prompt-btn" class="reset-btn">プロンプトを初期化</button>
+        </div>
+    </div>
+
+    <hr>
+    <div class="danger-zone">
+        <h2>危険な操作</h2>
+        <p>この操作は元に戻せません。ご注意ください。</p>
+        <button id="reset-sites-btn" class="danger-btn">設定を初期状態に戻す</button>
+    </div>
+
+    <div id="toast-notification"></div>
+
+    <!-- 拡張機能情報セクション -->
+    <footer style="margin-top:40px; padding:20px 0; text-align:center; color:#666; font-size:0.95em;">
+        <hr>
+        <div>
+            <strong>AI Launcher 拡張機能</strong><br>
+            バージョン: 0.2.0<br>
+            <a href="https://github.com/fai23e/AI-Launcher/" target="_blank" style="color:#1976d2;">GitHub</a>
+        </div>
+        <div style="margin-top:18px; color:#999; font-size:0.92em;">
+        </div>
+    </footer>
+    <script src="options.js"></script>
+</body>
+</html>
