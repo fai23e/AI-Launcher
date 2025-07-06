@@ -7,6 +7,7 @@
   "background": {
     "service_worker": "background.js"
   },
+  "options_page": "options.htm",
   "commands": {
     "open_launcher": {
       "suggested_key": {

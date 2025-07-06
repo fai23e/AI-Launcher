@@ -1,0 +1,161 @@
+body {
+    font-family: sans-serif;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #f4f4f4;
+}
+
+h1, h2 {
+    color: #333;
+}
+
+#site-list {
+    margin-bottom: 20px;
+}
+
+.site-item {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-item .info {
+    flex-grow: 1;
+    text-align: left;
+    margin: 0 15px;
+}
+
+.site-item .info p {
+    margin: 5px 0 0;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.site-item .edit-form {
+    flex-grow: 1;
+}
+
+.site-item .edit-form input {
+    display: block;
+    width: calc(100% - 20px);
+    padding: 6px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+.site-item .info small {
+    color: #888;
+}
+
+.reorder-buttons {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-right: 15px;
+}
+
+.reorder-buttons button {
+    background: none;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    padding: 2px 5px;
+    line-height: 1;
+}
+
+.reorder-buttons button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+#add-site-form {
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+#add-site-form input {
+    display: block;
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+}
+
+#add-site-form button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+#add-site-form button:hover {
+    background-color: #218838;
+}
+
+.actions button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+}
+
+.danger-zone {
+    margin-top: 30px;
+    padding: 20px;
+    border: 1px solid #dc3545;
+    border-radius: 5px;
+    background-color: #f8d7da;
+}
+
+.danger-zone h2 {
+    color: #721c24;
+    margin-top: 0;
+}
+
+.danger-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.danger-btn:hover {
+    background-color: #c82333;
+}
+
+#toast-notification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #28a745;
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s, transform 0.5s;
+    transform: translateY(20px);
+}
+
+#toast-notification.show {
+    opacity: 1;
+    transform: translateY(0);
+}

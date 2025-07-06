@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Launcher 設定</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+<body>
+    <h1>AI Launcher 設定</h1>
+    <p>ランチャーに表示するサイトを管理します。</p>
+
+    <h2>新しいサイトを追加</h2>
+    <form id="add-site-form">
+        <input type="text" id="new-key" placeholder="ショートカットキー (1文字)" maxlength="1" required>
+        <input type="text" id="new-name" placeholder="サイト名" required>
+        <input type="url" id="new-url" placeholder="URL" required>
+        <input type="text" id="new-description" placeholder="説明">
+        <button type="submit">追加</button>
+    </form>
+
+    <hr>
+
+    <div id="site-list">
+        <!-- サイトのリストはここに動的に生成されます -->
+    </div>
+
+    <script src="options.js"></script>
+
+    <hr>
+    <div class="danger-zone">
+        <h2>危険な操作</h2>
+        <p>この操作は元に戻せません。ご注意ください。</p>
+        <button id="reset-sites-btn" class="danger-btn">設定を初期状態に戻す</button>
+    </div>
+
+    <div id="toast-notification"></div>
+
+</body>
+</html>
