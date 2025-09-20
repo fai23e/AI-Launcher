@@ -35,7 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ai_launcher_settings.json';
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+            a.download = `ai_launcher_settings_${timestamp}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -258,4 +260,3 @@ document.addEventListener('DOMContentLoaded', () => {
     // 初期読み込み
     loadSites();
 });
-
