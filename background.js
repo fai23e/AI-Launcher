@@ -14,11 +14,9 @@ chrome.runtime.onInstalled.addListener((details) => {
             { key: 'x', name: 'Grok', url: 'https://grok.com/', description: '最新の出来事やリアルタイムの情報を元にした回答、人間らしい回答やX(旧Twitter)の情報を活用できる' }
         ];
         chrome.storage.sync.set({ 
-            sites: defaultSites,
-            enableYoutubeGeminiButton: true,
-            youtubeGeminiPrompt: 'この動画を要約して: ${videoUrl}'
+            sites: defaultSites
         }, () => {
-            console.log('デフォルトのサイトリストとYouTube Geminiボタン設定が保存されました。');
+            console.log('デフォルトのサイトリストが保存されました。');
         });
     }
 });

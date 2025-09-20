@@ -4,10 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetSitesBtn = document.getElementById('reset-sites-btn');
     const toast = document.getElementById('toast-notification');
 
-    // New elements for YouTube Gemini button settings
-    const enableYoutubeGeminiButton = document.getElementById('enable-youtube-gemini-button');
-    const youtubeGeminiPrompt = document.getElementById('youtube-gemini-prompt');
-    const resetYoutubeGeminiPromptBtn = document.getElementById('reset-youtube-gemini-prompt-btn');
+
 
     // 通知を表示する
     function showToast(message) {
@@ -26,31 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // YouTube Gemini ボタン設定を読み込む
-    function loadYoutubeGeminiSettings() {
-        chrome.storage.sync.get(['enableYoutubeGeminiButton', 'youtubeGeminiPrompt'], (data) => {
-            enableYoutubeGeminiButton.checked = data.enableYoutubeGeminiButton !== false; // Default to true
-            youtubeGeminiPrompt.value = data.youtubeGeminiPrompt || 'この動画を要約して: ${videoUrl}'; // Default prompt
-        });
-    }
 
-    // YouTube Gemini ボタン設定を保存する
-    function saveYoutubeGeminiSettings() {
-        chrome.storage.sync.set({
-            enableYoutubeGeminiButton: enableYoutubeGeminiButton.checked,
-            youtubeGeminiPrompt: youtubeGeminiPrompt.value
-        }, () => {
-            showToast('YouTube Gemini ボタン設定を保存しました');
-        });
-    }
-
-    // イベントリスナー
-    enableYoutubeGeminiButton.addEventListener('change', saveYoutubeGeminiSettings);
-    youtubeGeminiPrompt.addEventListener('input', saveYoutubeGeminiSettings);
-    resetYoutubeGeminiPromptBtn.addEventListener('click', () => {
-        youtubeGeminiPrompt.value = 'この動画を要約して: ${videoUrl}';
-        saveYoutubeGeminiSettings();
-    });
 
     // サイトのリストを描画する
     function renderSites(sites) {
@@ -229,22 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // {videoUrl} コピー機能
-    const copyVideoUrlEl = document.getElementById('copy-video-url');
-    if (copyVideoUrlEl) {
-        copyVideoUrlEl.addEventListener('click', () => {
-            navigator.clipboard.writeText('${videoUrl}').then(() => {
-                copyVideoUrlEl.textContent = 'コピーしました';
-                showToast('${videoUrl} をコピーしました');
-                setTimeout(() => {
-                    copyVideoUrlEl.textContent = '${videoUrl}';
-                }, 1200);
-            });
-        });
-    }
-
     // 初期読み込み
     loadSites();
-    loadYoutubeGeminiSettings();
 });
 
