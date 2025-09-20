@@ -30,7 +30,17 @@
         <!-- サイトのリストはここに動的に生成されます -->
     </div>
 
+    <hr>
 
+    <div class="setting-section">
+        <h2>設定のインポート / エクスポート</h2>
+        <p>現在のサイト設定をファイルに保存したり、ファイルから読み込んだりできます。</p>
+        <div class="setting-item">
+            <button id="export-settings-btn" class="action-btn">設定をエクスポート</button>
+            <input type="file" id="import-settings-file" accept=".json" style="display: none;">
+            <button id="import-settings-btn" class="action-btn">設定をインポート</button>
+        </div>
+    </div>
 
     <hr>
     <div class="danger-zone">

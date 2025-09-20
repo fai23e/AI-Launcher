@@ -4,7 +4,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetSitesBtn = document.getElementById('reset-sites-btn');
     const toast = document.getElementById('toast-notification');
 
-
+    // Import/Export elements
+    const exportSettingsBtn = document.getElementById('export-settings-btn');
+    const importSettingsBtn = document.getElementById('import-settings-btn');
+    const importSettingsFile = document.getElementById('import-settings-file');
 
     // 通知を表示する
     function showToast(message) {
@@ -22,6 +25,56 @@ document.addEventListener('DOMContentLoaded', () => {
             renderSites(sites);
         });
     }
+
+    // エクスポート機能
+    exportSettingsBtn.addEventListener('click', () => {
+        chrome.storage.sync.get('sites', (data) => {
+            const settings = { sites: data.sites || [] };
+            const json = JSON.stringify(settings, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'ai_launcher_settings.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('設定をエクスポートしました');
+        });
+    });
+
+    // インポート機能
+    importSettingsBtn.addEventListener('click', () => {
+        importSettingsFile.click(); // 隠されたファイル入力要素をクリック
+    });
+
+    importSettingsFile.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.sites && Array.isArray(parsed.sites)) {
+                    // 既存のサイトデータを上書き
+                    chrome.storage.sync.set({ sites: parsed.sites }, () => {
+                        loadSites();
+                        showToast('設定をインポートしました');
+                    });
+                } else {
+                    showToast('無効な設定ファイルです。');
+                }
+            } catch (error) {
+                showToast('ファイルの読み込みに失敗しました。');
+                console.error('設定ファイルのパースエラー:', error);
+            }
+        };
+        reader.readAsText(file);
+        // ファイル選択をリセットして、同じファイルを再度選択できるようにする
+        event.target.value = '';
+    });
 
 
 
