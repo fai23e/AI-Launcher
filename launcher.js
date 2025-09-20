@@ -66,25 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (urlMap.hasOwnProperty(key)) {
             const url = urlMap[key];
             console.log(`デバッグ用：解決されたURL: ${url}`);
-            
-            chrome.runtime.sendMessage({ action: "checkWindow", url }, (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error("デバッグ用：backgroundへのメッセージ送信エラー (checkWindow):", chrome.runtime.lastError.message);
-                    closeLauncher();
-                    return;
-                }
-                
-                if (response && response.exists) {
-                    chrome.windows.update(response.windowId, { focused: true }, () => {
-                        if (chrome.runtime.lastError) {
-                            console.error("デバッグ用：ウィンドウのフォーカスエラー:", chrome.runtime.lastError.message);
-                        }
-                        closeLauncher();
-                    });
-                } else {
-                    openPage(url, closeLauncher);
-                }
-            });
+            openPage(url, closeLauncher);
         } else {
             if (keyDisplay) {
                 keyDisplay.textContent = `定義されていません: ${event.key}`;
@@ -120,9 +102,6 @@ function openPage(url, callback) {
         const windowOptions = { url, type: "popup", width: newWidth, height: newHeight, top: useFallback ? 0 : calculatedTop, left: useFallback ? 0 : calculatedLeft };
 
         chrome.windows.create(windowOptions, (window) => {
-            if (window) {
-                chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id });
-            }
             if (callback) callback();
         });
     });
