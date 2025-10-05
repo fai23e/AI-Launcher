@@ -8,6 +8,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportSettingsBtn = document.getElementById('export-settings-btn');
     const importSettingsBtn = document.getElementById('import-settings-btn');
     const importSettingsFile = document.getElementById('import-settings-file');
+    const windowSizeSelect = document.getElementById('window-size-select');
+
+    // --- 設定の読み込み ---
+    function loadSettings() {
+        // ウィンドウサイズの読み込み
+        chrome.storage.sync.get('windowSize', (data) => {
+            if (data.windowSize) {
+                windowSizeSelect.value = data.windowSize;
+            }
+        });
+    }
+
+    // --- 設定の保存 ---
+    // ウィンドウサイズの変更を保存
+    windowSizeSelect.addEventListener('change', () => {
+        const selectedSize = windowSizeSelect.value;
+        chrome.storage.sync.set({ windowSize: selectedSize }, () => {
+            showToast(`ウィンドウサイズを ${selectedSize} に設定しました`);
+        });
+    });
 
     // 通知を表示する
     function showToast(message) {
@@ -259,4 +279,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 初期読み込み
     loadSites();
+    loadSettings();
 });
