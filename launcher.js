@@ -65,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (urlMap.hasOwnProperty(key)) {
             const url = urlMap[key];
-            console.log(`デバッグ用：解決されたURL: ${url}`);
-            openPage(url, closeLauncher);
+            const shiftPressed = event.shiftKey;
+            console.log(`デバッグ用：解決されたURL: ${url}, Shiftキー: ${shiftPressed}`);
+            openPage(url, closeLauncher, shiftPressed);
         } else {
             if (keyDisplay) {
                 keyDisplay.textContent = `定義されていません: ${event.key}`;
@@ -81,13 +82,13 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * 指定されたURLを新しいウィンドウで開く関数
  */
-function openPage(url, callback) {
+function openPage(url, callback, shiftPressed = false) {
     console.log(`新しいページを開きます: ${url}`);
 
     chrome.storage.sync.get(['windowSize', 'openAction'], (data) => {
         const openAction = data.openAction || 'popup'; // デフォルトは 'popup'
 
-        if (openAction === 'newTab') {
+        if (shiftPressed || openAction === 'newTab') {
             chrome.tabs.create({ url: url }, () => {
                 if (callback) callback();
             });
