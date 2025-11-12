@@ -11,8 +11,6 @@
         <span>
             ※「Uncaught Error: Extension context invalidated.」というエラーが出ることがありますが、既知の問題で動作には特に問題ないので気にしないでください。
             <br>
-            このエラーは、youtubeのサイトがリロードされたときに発生することがあります。そのうち修正します。
-            <br>
         </span>
         <hr>
     <h2>新しいサイトを追加</h2>
@@ -33,22 +31,28 @@
     <hr>
 
     <div class="setting-section">
-        <h2>YouTube Gemini 要約ボタン設定</h2>
+        <h2>ウィンドウサイズ設定</h2>
+        <p>新しいウィンドウを開く際のサイズを選択します。</p>
         <div class="setting-item">
-            <label for="enable-youtube-gemini-button">
-                <input type="checkbox" id="enable-youtube-gemini-button">
-                YouTube Gemini 要約ボタンを有効にする
-            </label>
+            <label for="window-size-select">ウィンドウサイズ:</label>
+            <select id="window-size-select">
+                <option value="fullscreen">フルスクリーン</option>
+                <option value="1920x1080">1920 x 1080</option>
+                <option value="1600x900">1600 x 900</option>
+                <option value="1280x720">1280 x 720</option>
+            </select>
         </div>
+    </div>
+
+    <hr>
+
+    <div class="setting-section">
+        <h2>設定のインポート / エクスポート</h2>
+        <p>現在のサイト設定をファイルに保存したり、ファイルから読み込んだりできます。</p>
         <div class="setting-item">
-            <p>要約ボタンクリック時にコピーされる要約プロンプトをカスタマイズできます。</p>
-            <p>
-                <span id="copy-video-url" style="cursor:pointer; color:#1976d2; text-decoration:underline;">${videoUrl}</span>
-                は動画のURLに置き換えられます。
-            </p>
-            <label for="youtube-gemini-prompt">要約プロンプト:</label>
-            <textarea id="youtube-gemini-prompt" rows="4" cols="50"></textarea>
-            <button id="reset-youtube-gemini-prompt-btn" class="reset-btn">プロンプトを初期化</button>
+            <button id="export-settings-btn" class="action-btn">設定をエクスポート</button>
+            <input type="file" id="import-settings-file" accept=".json" style="display: none;">
+            <button id="import-settings-btn" class="action-btn">設定をインポート</button>
         </div>
     </div>
 
@@ -66,7 +70,7 @@
         <hr>
         <div>
             <strong>AI Launcher 拡張機能</strong><br>
-            バージョン: 0.2.0<br>
+            バージョン: 0.2.1<br>
             <a href="https://github.com/fai23e/AI-Launcher/" target="_blank" style="color:#1976d2;">GitHub</a>
         </div>
         <div style="margin-top:18px; color:#999; font-size:0.92em;">

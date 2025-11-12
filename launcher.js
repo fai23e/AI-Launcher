@@ -66,25 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (urlMap.hasOwnProperty(key)) {
             const url = urlMap[key];
             console.log(`デバッグ用：解決されたURL: ${url}`);
-            
-            chrome.runtime.sendMessage({ action: "checkWindow", url }, (response) => {
-                if (chrome.runtime.lastError) {
-                    console.error("デバッグ用：backgroundへのメッセージ送信エラー (checkWindow):", chrome.runtime.lastError.message);
-                    closeLauncher();
-                    return;
-                }
-                
-                if (response && response.exists) {
-                    chrome.windows.update(response.windowId, { focused: true }, () => {
-                        if (chrome.runtime.lastError) {
-                            console.error("デバッグ用：ウィンドウのフォーカスエラー:", chrome.runtime.lastError.message);
-                        }
-                        closeLauncher();
-                    });
-                } else {
-                    openPage(url, closeLauncher);
-                }
-            });
+            openPage(url, closeLauncher);
         } else {
             if (keyDisplay) {
                 keyDisplay.textContent = `定義されていません: ${event.key}`;
@@ -101,29 +83,42 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function openPage(url, callback) {
     console.log(`新しいページを開きます: ${url}`);
-    const newWidth = 1280;
-    const newHeight = 900;
 
-    chrome.system.display.getInfo((displayInfo) => {
-        let calculatedLeft = 0, calculatedTop = 0, useFallback = false;
+    chrome.storage.sync.get('windowSize', (data) => {
+        const sizeSetting = data.windowSize || 'fullscreen'; // デフォルトはfullscreen
 
-        if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
-            console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message);
-            useFallback = true;
-        } else {
-            const primaryDisplay = displayInfo.find(d => d.isPrimary) || displayInfo[0];
-            const workArea = primaryDisplay.workArea;
-            calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
-            calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
-        }
+        chrome.system.display.getInfo((displayInfo) => {
+            let newWidth, newHeight, calculatedLeft, calculatedTop;
 
-        const windowOptions = { url, type: "popup", width: newWidth, height: newHeight, top: useFallback ? 0 : calculatedTop, left: useFallback ? 0 : calculatedLeft };
+            if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
+                console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message);
+                newWidth = 1280;
+                newHeight = 900;
+                calculatedLeft = 0;
+                calculatedTop = 0;
+            } else {
+                const primaryDisplay = displayInfo.find(d => d.isPrimary) || displayInfo[0];
+                const workArea = primaryDisplay.workArea;
 
-        chrome.windows.create(windowOptions, (window) => {
-            if (window) {
-                chrome.runtime.sendMessage({ action: "addWindow", url, windowId: window.id });
+                if (sizeSetting === 'fullscreen') {
+                    newWidth = workArea.width;
+                    newHeight = workArea.height;
+                    calculatedLeft = workArea.left;
+                    calculatedTop = workArea.top;
+                } else {
+                    const [width, height] = sizeSetting.split('x').map(Number);
+                    newWidth = width;
+                    newHeight = height;
+                    calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
+                    calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
+                }
             }
-            if (callback) callback();
+
+            const windowOptions = { url, type: "popup", width: newWidth, height: newHeight, top: calculatedTop, left: calculatedLeft };
+
+            chrome.windows.create(windowOptions, (window) => {
+                if (callback) callback();
+            });
         });
     });
 }

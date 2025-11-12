@@ -14,11 +14,9 @@ chrome.runtime.onInstalled.addListener((details) => {
             { key: 'x', name: 'Grok', url: 'https://grok.com/', description: '最新の出来事やリアルタイムの情報を元にした回答、人間らしい回答やX(旧Twitter)の情報を活用できる' }
         ];
         chrome.storage.sync.set({ 
-            sites: defaultSites,
-            enableYoutubeGeminiButton: true,
-            youtubeGeminiPrompt: 'この動画を要約して: ${videoUrl}'
+            sites: defaultSites
         }, () => {
-            console.log('デフォルトのサイトリストとYouTube Geminiボタン設定が保存されました。');
+            console.log('デフォルトのサイトリストが保存されました。');
         });
     }
 });
@@ -31,11 +29,7 @@ chrome.action.onClicked.addListener(() => {
 // ランチャーウィンドウのIDを保持する変数。存在しない場合はnull。
 let launcherWindowId = null;
 
-// ランチャーから開かれたページを管理するためのMap
-// URLをキーとしてウィンドウIDを保持
-const urlToIdMap = new Map();
-// ウィンドウIDをキーとしてURLを保持（逆引き用）
-const idToUrlMap = new Map();
+
 
 
 // manifest.jsonで定義されたキーボードショートカットのリスナー
@@ -180,61 +174,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("デバッグ用：backgroundでメッセージを受信しました:", message);
 
   switch (message.action) {
-    // ウィンドウが既に開いているか確認するアクション
-    case "checkWindow": {
-      const { url } = message;
-      const windowId = urlToIdMap.get(url);
-
-      if (windowId) {
-        chrome.windows.get(windowId, { populate: false }, (foundWindow) => {
-          if (chrome.runtime.lastError || !foundWindow) {
-            console.warn(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウが見つかりません。Mapから削除します。`, chrome.runtime.lastError?.message || "ウィンドウオブジェクトなし");
-            urlToIdMap.delete(url);
-            idToUrlMap.delete(windowId);
-            sendResponse({ exists: false });
-          } else {
-            console.log(`デバッグ用：URL ${url} (ID: ${windowId}) のウィンドウは存在します。`);
-            sendResponse({ exists: true, windowId: foundWindow.id });
-          }
-        });
-      } else {
-        console.log(`デバッグ用：URL ${url} のウィンドウは保存されていません。`);
-        sendResponse({ exists: false });
-      }
-      return true; // sendResponseが非同期に呼び出されることを示す
-    }
-
-    // 新しいウィンドウ情報を追加するアクション
-    case "addWindow": {
-      const { url, windowId } = message;
-      // 既存のURLに対する古いマッピングがあれば削除
-      if (urlToIdMap.has(url)) {
-        const oldWindowId = urlToIdMap.get(url);
-        idToUrlMap.delete(oldWindowId);
-        console.warn(`デバッグ用：URL ${url} は既に存在しました。古いウィンドウID ${oldWindowId} のマッピングを削除します。`);
-      }
-      urlToIdMap.set(url, windowId);
-      idToUrlMap.set(windowId, url);
-      console.log(`デバッグ用：ウィンドウが追加/更新されました: URL: ${url}, ID: ${windowId}`);
-      sendResponse({ success: true });
-      return false;
-    }
-
-    // ウィンドウ情報を削除するアクション
-    case "removeWindow": {
-      const { windowId } = message;
-      const url = idToUrlMap.get(windowId);
-      if (url) {
-        urlToIdMap.delete(url);
-        idToUrlMap.delete(windowId);
-        console.log(`デバッグ用：ウィンドウが削除されました: URL: ${url}, ID: ${windowId}`);
-      } else {
-        console.warn(`デバッグ用：追跡されていないウィンドウIDの削除が試みられました: ${windowId}`);
-      }
-      sendResponse({ success: true });
-      return false;
-    }
-
     // ランチャーウィンドウを閉じるアクション
     case "closeLauncher": {
       if (launcherWindowId !== null) {

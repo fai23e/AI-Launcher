@@ -4,10 +4,30 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetSitesBtn = document.getElementById('reset-sites-btn');
     const toast = document.getElementById('toast-notification');
 
-    // New elements for YouTube Gemini button settings
-    const enableYoutubeGeminiButton = document.getElementById('enable-youtube-gemini-button');
-    const youtubeGeminiPrompt = document.getElementById('youtube-gemini-prompt');
-    const resetYoutubeGeminiPromptBtn = document.getElementById('reset-youtube-gemini-prompt-btn');
+    // Import/Export elements
+    const exportSettingsBtn = document.getElementById('export-settings-btn');
+    const importSettingsBtn = document.getElementById('import-settings-btn');
+    const importSettingsFile = document.getElementById('import-settings-file');
+    const windowSizeSelect = document.getElementById('window-size-select');
+
+    // --- 設定の読み込み ---
+    function loadSettings() {
+        // ウィンドウサイズの読み込み
+        chrome.storage.sync.get('windowSize', (data) => {
+            if (data.windowSize) {
+                windowSizeSelect.value = data.windowSize;
+            }
+        });
+    }
+
+    // --- 設定の保存 ---
+    // ウィンドウサイズの変更を保存
+    windowSizeSelect.addEventListener('change', () => {
+        const selectedSize = windowSizeSelect.value;
+        chrome.storage.sync.set({ windowSize: selectedSize }, () => {
+            showToast(`ウィンドウサイズを ${selectedSize} に設定しました`);
+        });
+    });
 
     // 通知を表示する
     function showToast(message) {
@@ -26,31 +46,59 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // YouTube Gemini ボタン設定を読み込む
-    function loadYoutubeGeminiSettings() {
-        chrome.storage.sync.get(['enableYoutubeGeminiButton', 'youtubeGeminiPrompt'], (data) => {
-            enableYoutubeGeminiButton.checked = data.enableYoutubeGeminiButton !== false; // Default to true
-            youtubeGeminiPrompt.value = data.youtubeGeminiPrompt || 'この動画を要約して: ${videoUrl}'; // Default prompt
+    // エクスポート機能
+    exportSettingsBtn.addEventListener('click', () => {
+        chrome.storage.sync.get('sites', (data) => {
+            const settings = { sites: data.sites || [] };
+            const json = JSON.stringify(settings, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const now = new Date();
+            const timestamp = `${now.getFullYear()}${(now.getMonth() + 1).toString().padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}_${now.getHours().toString().padStart(2, '0')}${now.getMinutes().toString().padStart(2, '0')}${now.getSeconds().toString().padStart(2, '0')}`;
+            a.download = `ai_launcher_settings_${timestamp}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('設定をエクスポートしました');
         });
-    }
-
-    // YouTube Gemini ボタン設定を保存する
-    function saveYoutubeGeminiSettings() {
-        chrome.storage.sync.set({
-            enableYoutubeGeminiButton: enableYoutubeGeminiButton.checked,
-            youtubeGeminiPrompt: youtubeGeminiPrompt.value
-        }, () => {
-            showToast('YouTube Gemini ボタン設定を保存しました');
-        });
-    }
-
-    // イベントリスナー
-    enableYoutubeGeminiButton.addEventListener('change', saveYoutubeGeminiSettings);
-    youtubeGeminiPrompt.addEventListener('input', saveYoutubeGeminiSettings);
-    resetYoutubeGeminiPromptBtn.addEventListener('click', () => {
-        youtubeGeminiPrompt.value = 'この動画を要約して: ${videoUrl}';
-        saveYoutubeGeminiSettings();
     });
+
+    // インポート機能
+    importSettingsBtn.addEventListener('click', () => {
+        importSettingsFile.click(); // 隠されたファイル入力要素をクリック
+    });
+
+    importSettingsFile.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const parsed = JSON.parse(e.target.result);
+                if (parsed.sites && Array.isArray(parsed.sites)) {
+                    // 既存のサイトデータを上書き
+                    chrome.storage.sync.set({ sites: parsed.sites }, () => {
+                        loadSites();
+                        showToast('設定をインポートしました');
+                    });
+                } else {
+                    showToast('無効な設定ファイルです。');
+                }
+            } catch (error) {
+                showToast('ファイルの読み込みに失敗しました。');
+                console.error('設定ファイルのパースエラー:', error);
+            }
+        };
+        reader.readAsText(file);
+        // ファイル選択をリセットして、同じファイルを再度選択できるようにする
+        event.target.value = '';
+    });
+
+
 
     // サイトのリストを描画する
     function renderSites(sites) {
@@ -229,22 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // {videoUrl} コピー機能
-    const copyVideoUrlEl = document.getElementById('copy-video-url');
-    if (copyVideoUrlEl) {
-        copyVideoUrlEl.addEventListener('click', () => {
-            navigator.clipboard.writeText('${videoUrl}').then(() => {
-                copyVideoUrlEl.textContent = 'コピーしました';
-                showToast('${videoUrl} をコピーしました');
-                setTimeout(() => {
-                    copyVideoUrlEl.textContent = '${videoUrl}';
-                }, 1200);
-            });
-        });
-    }
-
     // 初期読み込み
     loadSites();
-    loadYoutubeGeminiSettings();
+    loadSettings();
 });
-
