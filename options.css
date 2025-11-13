@@ -222,3 +222,14 @@ h1, h2 {
     opacity: 1;
     transform: translate(-50%, 0);
 }
+
+/* ラジオボタンのレイアウト調整 */
+.setting-item label:not([for]) {
+    font-weight: normal;
+    display: flex;
+    align-items: center;
+}
+
+.setting-item input[type="radio"] {
+    margin-right: 5px;
+}

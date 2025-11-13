@@ -65,8 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (urlMap.hasOwnProperty(key)) {
             const url = urlMap[key];
-            console.log(`デバッグ用：解決されたURL: ${url}`);
-            openPage(url, closeLauncher);
+            const shiftPressed = event.shiftKey;
+            console.log(`デバッグ用：解決されたURL: ${url}, Shiftキー: ${shiftPressed}`);
+            openPage(url, closeLauncher, shiftPressed);
         } else {
             if (keyDisplay) {
                 keyDisplay.textContent = `定義されていません: ${event.key}`;
@@ -81,45 +82,59 @@ document.addEventListener('DOMContentLoaded', () => {
 /**
  * 指定されたURLを新しいウィンドウで開く関数
  */
-function openPage(url, callback) {
+function openPage(url, callback, shiftPressed = false) {
     console.log(`新しいページを開きます: ${url}`);
 
-    chrome.storage.sync.get('windowSize', (data) => {
-        const sizeSetting = data.windowSize || 'fullscreen'; // デフォルトはfullscreen
+    chrome.storage.sync.get(['windowSize', 'openAction'], (data) => {
+        let openAction = data.openAction || 'popup'; // デフォルトは 'popup'
 
-        chrome.system.display.getInfo((displayInfo) => {
-            let newWidth, newHeight, calculatedLeft, calculatedTop;
+        // Shiftキーが押されている場合は、設定を反転させる
+        if (shiftPressed) {
+            openAction = openAction === 'popup' ? 'newTab' : 'popup';
+        }
 
-            if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
-                console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message);
-                newWidth = 1280;
-                newHeight = 900;
-                calculatedLeft = 0;
-                calculatedTop = 0;
-            } else {
-                const primaryDisplay = displayInfo.find(d => d.isPrimary) || displayInfo[0];
-                const workArea = primaryDisplay.workArea;
-
-                if (sizeSetting === 'fullscreen') {
-                    newWidth = workArea.width;
-                    newHeight = workArea.height;
-                    calculatedLeft = workArea.left;
-                    calculatedTop = workArea.top;
-                } else {
-                    const [width, height] = sizeSetting.split('x').map(Number);
-                    newWidth = width;
-                    newHeight = height;
-                    calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
-                    calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
-                }
-            }
-
-            const windowOptions = { url, type: "popup", width: newWidth, height: newHeight, top: calculatedTop, left: calculatedLeft };
-
-            chrome.windows.create(windowOptions, (window) => {
+        if (openAction === 'newTab') {
+            chrome.tabs.create({ url: url }, () => {
                 if (callback) callback();
             });
-        });
+        } else {
+            // 'popup' の場合
+            const sizeSetting = data.windowSize || 'fullscreen'; // デフォルトはfullscreen
+
+            chrome.system.display.getInfo((displayInfo) => {
+                let newWidth, newHeight, calculatedLeft, calculatedTop;
+
+                if (chrome.runtime.lastError || !displayInfo || displayInfo.length === 0) {
+                    console.error("デバッグ用：ディスプレイ情報の取得に失敗しました:", chrome.runtime.lastError?.message);
+                    newWidth = 1280;
+                    newHeight = 900;
+                    calculatedLeft = 0;
+                    calculatedTop = 0;
+                } else {
+                    const primaryDisplay = displayInfo.find(d => d.isPrimary) || displayInfo[0];
+                    const workArea = primaryDisplay.workArea;
+
+                    if (sizeSetting === 'fullscreen') {
+                        newWidth = workArea.width;
+                        newHeight = workArea.height;
+                        calculatedLeft = workArea.left;
+                        calculatedTop = workArea.top;
+                    } else {
+                        const [width, height] = sizeSetting.split('x').map(Number);
+                        newWidth = width;
+                        newHeight = height;
+                        calculatedLeft = Math.round((workArea.width - newWidth) / 2) + workArea.left;
+                        calculatedTop = Math.round((workArea.height - newHeight) / 2) + workArea.top;
+                    }
+                }
+
+                const windowOptions = { url, type: "popup", width: newWidth, height: newHeight, top: calculatedTop, left: calculatedLeft };
+
+                chrome.windows.create(windowOptions, (window) => {
+                    if (callback) callback();
+                });
+            });
+        }
     });
 }
 

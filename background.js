@@ -34,76 +34,20 @@ let launcherWindowId = null;
 
 // manifest.jsonで定義されたキーボードショートカットのリスナー
 chrome.commands.onCommand.addListener((command) => {
-  // "open_launcher"コマンド（例：Ctrl+Shift+Lなど）を受け取った場合
   if (command === "open_launcher") {
+    // ランチャーウィンドウが既に開いているか確認
     if (launcherWindowId !== null) {
-      // ランチャーウィンドウIDが既に存在する場合、ウィンドウの状態を確認
-      chrome.windows.get(launcherWindowId, { populate: false }, (existingWindow) => {
-        if (chrome.runtime.lastError || !existingWindow) {
-          // ウィンドウが見つからない場合（手動で閉じられた、クラッシュしたなど）
-          console.warn("デバッグ用：ランチャーウィンドウIDは設定されていましたが、ウィンドウが見つかりませんでした。リセットします。", chrome.runtime.lastError?.message || "ウィンドウオブジェクトなし");
-          launcherWindowId = null; // IDをリセット
-          openLauncher(); // 新しいランチャーを開く
-        } else if (existingWindow.focused) {
-          // ランチャーが既に開いていてフォーカスされている場合、閉じる（トグル動作）
-          chrome.windows.remove(launcherWindowId, () => {
-            if (chrome.runtime.lastError) {
-              console.error("デバッグ用：フォーカスされたランチャーウィンドウの削除に失敗しました:", chrome.runtime.lastError.message);
-            } else {
-              console.log("デバッグ用：フォーカスされたランチャーウィンドウが削除されました（トグル動作）。");
-            }
-            launcherWindowId = null; // 削除後、IDをリセット
-          });
-        } else {
-          // ランチャーは存在するがフォーカスされていない場合、フォーカスする
-          chrome.windows.update(launcherWindowId, { focused: true }, () => {
-            if (chrome.runtime.lastError) {
-              console.error("デバッグ用：既存ランチャーウィンドウのフォーカスに失敗しました:", chrome.runtime.lastError.message);
-              // フォーカスに失敗した場合、ウィンドウが不正な状態である可能性があるため、再度開くことを試みる
-              launcherWindowId = null; // IDをリセット
-              openLauncher();
-            } else {
-              console.log("デバッグ用：既存のランチャーウィンドウがフォーカスされました。");
-            }
-          });
-        }
+      // 開いている場合は、ウィンドウを閉じる（トグル動作）
+      chrome.windows.remove(launcherWindowId, () => {
+        // エラーハンドリングは省略するが、必要に応じて追加
+        launcherWindowId = null;
       });
     } else {
-      // ランチャーウィンドウIDが記録されていない場合、新しいランチャーを開く
-      openLauncher();
+      // 開いていない場合は、新しいランチャーを作成する
+      createLauncherWindow();
     }
   }
 });
-
-/**
- * ランチャーウィンドウを開くか、既存のものをフォーカスする関数。
- * launcherWindowIdの状態に応じて、createLauncherWindowを呼び出すか、既存ウィンドウを操作します。
- */
-function openLauncher() {
-  if (launcherWindowId !== null) {
-    console.warn("デバッグ用：openLauncherが呼び出されましたが、launcherWindowIdはnullではありません。既存ウィンドウを確認します。");
-    // 新規作成する代わりに、既存のウィンドウをフォーカスすることを試みる
-    chrome.windows.get(launcherWindowId, { populate: false }, (existingWindow) => {
-        if (chrome.runtime.lastError || !existingWindow) {
-            console.warn("デバッグ用：openLauncher中に既存ランチャーウィンドウが見つかりませんでした。新規作成します。", chrome.runtime.lastError?.message || "ウィンドウオブジェクトなし");
-            launcherWindowId = null; // リセットして作成に進む
-            createLauncherWindow();
-        } else {
-            chrome.windows.update(launcherWindowId, { focused: true }, () => {
-                if (chrome.runtime.lastError) {
-                    console.error("デバッグ用：openLauncherでのウィンドウのフォーカスに失敗しました:", chrome.runtime.lastError.message);
-                    launcherWindowId = null; // リセットして新規作成を試みる
-                    createLauncherWindow();
-                } else {
-                    console.log("デバッグ用：openLauncher呼び出し中に既存ウィンドウのフォーカスに成功しました。");
-                }
-            });
-        }
-    });
-  } else {
-    createLauncherWindow();
-  }
-}
 
 /**
  * 新しいランチャーウィンドウを画面中央に作成する関数。

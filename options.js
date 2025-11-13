@@ -9,14 +9,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const importSettingsBtn = document.getElementById('import-settings-btn');
     const importSettingsFile = document.getElementById('import-settings-file');
     const windowSizeSelect = document.getElementById('window-size-select');
+    const openActionRadios = document.querySelectorAll('input[name="open-action"]');
 
     // --- 設定の読み込み ---
     function loadSettings() {
         // ウィンドウサイズの読み込み
-        chrome.storage.sync.get('windowSize', (data) => {
+        chrome.storage.sync.get(['windowSize', 'openAction'], (data) => {
             if (data.windowSize) {
                 windowSizeSelect.value = data.windowSize;
             }
+
+            const openAction = data.openAction || 'popup'; // デフォルトは 'popup'
+            openActionRadios.forEach(radio => {
+                if (radio.value === openAction) {
+                    radio.checked = true;
+                }
+            });
         });
     }
 
@@ -26,6 +34,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedSize = windowSizeSelect.value;
         chrome.storage.sync.set({ windowSize: selectedSize }, () => {
             showToast(`ウィンドウサイズを ${selectedSize} に設定しました`);
+        });
+    });
+
+    // 起動方法の変更を保存
+    openActionRadios.forEach(radio => {
+        radio.addEventListener('change', (event) => {
+            const selectedAction = event.target.value;
+            chrome.storage.sync.set({ openAction: selectedAction }, () => {
+                showToast(`起動方法を「${selectedAction === 'popup' ? 'ポップアップ' : '新しいタブ'}」に設定しました`);
+            });
         });
     });
 
