@@ -86,9 +86,14 @@ function openPage(url, callback, shiftPressed = false) {
     console.log(`新しいページを開きます: ${url}`);
 
     chrome.storage.sync.get(['windowSize', 'openAction'], (data) => {
-        const openAction = data.openAction || 'popup'; // デフォルトは 'popup'
+        let openAction = data.openAction || 'popup'; // デフォルトは 'popup'
 
-        if (shiftPressed || openAction === 'newTab') {
+        // Shiftキーが押されている場合は、設定を反転させる
+        if (shiftPressed) {
+            openAction = openAction === 'popup' ? 'newTab' : 'popup';
+        }
+
+        if (openAction === 'newTab') {
             chrome.tabs.create({ url: url }, () => {
                 if (callback) callback();
             });
