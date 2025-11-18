@@ -12,73 +12,155 @@
             ※「Uncaught Error: Extension context invalidated.」というエラーが出ることがありますが、既知の問題で動作には特に問題ないので気にしないでください。
             <br>
         </span>
-        <hr>
-    <h2>新しいサイトを追加</h2>
-    <form id="add-site-form">
-        <input type="text" id="new-key" placeholder="ショートカットキー (1文字)" maxlength="1" required>
-        <input type="text" id="new-name" placeholder="サイト名" required>
-        <input type="url" id="new-url" placeholder="URL" required>
-        <input type="text" id="new-description" placeholder="説明">
-        <button type="submit">追加</button>
-    </form>
-
-    <hr>
-
-    <div id="site-list">
-        <!-- サイトのリストはここに動的に生成されます -->
+    <div class="tab-nav">
+        <button class="tab-btn active" data-tab="site-settings-tab">サイト設定</button>
+        <button class="tab-btn" data-tab="custom-instructions-tab">カスタム指示</button>
     </div>
 
-    <hr>
+    <div id="tab-content">
+        <div id="site-settings-tab" class="tab-panel active">
+            <hr>
+            <h2>新しいサイトを追加</h2>
+            <form id="add-site-form">
+                <input type="text" id="new-key" placeholder="ショートカットキー (1文字)" maxlength="1" required>
+                <input type="text" id="new-name" placeholder="サイト名" required>
+                <input type="url" id="new-url" placeholder="URL" required>
+                <input type="text" id="new-description" placeholder="説明">
+                <button type="submit">追加</button>
+            </form>
 
-    <div class="setting-section">
-        <h2>ウィンドウサイズ設定</h2>
-        <p>新しいウィンドウを開く際のサイズを選択します。</p>
-        <div class="setting-item">
-            <label for="window-size-select">ウィンドウサイズ:</label>
-            <select id="window-size-select">
-                <option value="fullscreen">フルスクリーン</option>
-                <option value="1920x1080">1920 x 1080</option>
-                <option value="1600x900">1600 x 900</option>
-                <option value="1280x720">1280 x 720</option>
-            </select>
+            <hr>
+
+            <div id="site-list">
+                <!-- サイトのリストはここに動的に生成されます -->
+            </div>
+
+            <hr>
+
+            <div class="setting-section">
+                <h2>ウィンドウサイズ設定</h2>
+                <p>新しいウィンドウを開く際のサイズを選択します。</p>
+                <div class="setting-item">
+                    <label for="window-size-select">ウィンドウサイズ:</label>
+                    <select id="window-size-select">
+                        <option value="fullscreen">フルスクリーン</option>
+                        <option value="1920x1080">1920 x 1080</option>
+                        <option value="1600x900">1600 x 900</option>
+                        <option value="1280x720">1280 x 720</option>
+                    </select>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="setting-section">
+                <h2>起動方法の設定</h2>
+                <p>サイトをポップアップで開くか、新しいタブで開くか選択します。</p>
+                <p><small>ヒント: ランチャーで `Shift` キーを押しながらショートカットキーを入力すると、ここで設定した動作と逆の開き方をします。</small></p>
+                <div class="setting-item">
+                    <label>
+                        <input type="radio" name="open-action" value="popup">
+                        ポップアップで開く
+                    </label>
+                    <label>
+                        <input type="radio" name="open-action" value="newTab">
+                        新しいタブで開く
+                    </label>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="setting-section">
+                <h2>設定のインポート / エクスポート</h2>
+                <p>現在のサイト設定をファイルに保存したり、ファイルから読み込んだりできます。</p>
+                <div class="setting-item">
+                    <button id="export-settings-btn" class="action-btn">設定をエクスポート</button>
+                    <input type="file" id="import-settings-file" accept=".json" style="display: none;">
+                    <button id="import-settings-btn" class="action-btn">設定をインポート</button>
+                </div>
+            </div>
+
+            <hr>
+            <div class="danger-zone">
+                <h2>危険な操作</h2>
+                <p>この操作は元に戻せません。ご注意ください。</p>
+                <button id="reset-sites-btn" class="danger-btn">設定を初期状態に戻す</button>
+            </div>
         </div>
-    </div>
+        <div id="custom-instructions-tab" class="tab-panel">
+            <div class="preset-manager-toolbar">
+                <button id="add-preset-btn" class="action-btn">✨ 新しいプリセットを作成</button>
+                <input type="search" id="preset-search-input" placeholder="名前やタグで検索...">
+                <select id="preset-sort-select">
+                    <option value="updatedAt_desc">更新が新しい順</option>
+                    <option value="name_asc">名前順 (A-Z)</option>
+                    <option value="createdAt_desc">作成が新しい順</option>
+                    <option value="favorite_desc">お気に入り順</option>
+                </select>
+            </div>
+            <div id="preset-list-container">
+                <!-- プリセットカードがここに動的に表示されます -->
+            </div>
 
-    <hr>
+            <!-- プリセット編集モーダル (最初は非表示) -->
+            <div id="preset-editor-modal" class="modal-overlay" style="display: none;">
+                <div class="modal-content">
+                    <h2 id="modal-title">新しいプリセット</h2>
+                    <form id="preset-editor-form">
+                        <input type="hidden" id="preset-id">
+                        <div class="form-group">
+                            <label for="preset-name">名前 <span class="required">*</span></label>
+                            <input type="text" id="preset-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="preset-tags">タグ (Enterで追加)</label>
+                            <div id="tag-input-container" class="tag-input">
+                                <input type="text" id="tag-input" placeholder="例: 開発, レビュー">
+                            </div>
+                        </div>
+                         <div class="form-group">
+                            <label for="preset-prompt">プロンプト本文 <span class="required">*</span></label>
+                            <textarea id="preset-prompt" rows="8" required></textarea>
+                            <small><code>{変数名}</code> の形式で、適用時に値を入力する変数を埋め込めます。</small>
+                        </div>
+                        <div class="form-group">
+                            <label>サイト別カスタマイズ (任意)</label>
+                            <details>
+                                <summary>ChatGPT, Claude, Grok 用のプロンプトを設定</summary>
+                                <div class="site-customization-fields">
+                                    <label for="prompt-chatgpt">ChatGPT</label>
+                                    <textarea id="prompt-chatgpt" rows="3" placeholder="空の場合は共通プロンプトを使用"></textarea>
+                                    <label for="prompt-claude">Claude</label>
+                                    <textarea id="prompt-claude" rows="3" placeholder="空の場合は共通プロンプトを使用"></textarea>
+                                    <label for="prompt-grok">Grok</label>
+                                    <textarea id="prompt-grok" rows="3" placeholder="空の場合は共通プロンプトを使用"></textarea>
+                                </div>
+                            </details>
+                        </div>
+                        <div class="form-group form-inline">
+                             <input type="checkbox" id="preset-favorite">
+                            <label for="preset-favorite">お気に入りに追加</label>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="submit" id="save-preset-btn" class="action-btn">保存</button>
+                            <button type="button" id="cancel-preset-btn" class="cancel-btn">キャンセル</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-    <div class="setting-section">
-        <h2>起動方法の設定</h2>
-        <p>サイトをポップアップで開くか、新しいタブで開くか選択します。</p>
-        <p><small>ヒント: ランチャーで `Shift` キーを押しながらショートカットキーを入力すると、ここで設定した動作と逆の開き方をします。</small></p>
-        <div class="setting-item">
-            <label>
-                <input type="radio" name="open-action" value="popup">
-                ポップアップで開く
-            </label>
-            <label>
-                <input type="radio" name="open-action" value="newTab">
-                新しいタブで開く
-            </label>
+            <!-- バックアップ機能セクション -->
+            <div class="setting-section" style="margin-top: 30px;">
+                <h2>バックアップ</h2>
+                <p>カスタム指示プリセットをファイルに保存したり、ファイルから復元したりできます。</p>
+                <div class="setting-item">
+                    <button id="export-presets-btn" class="action-btn">プリセットをエクスポート</button>
+                    <input type="file" id="import-presets-file" accept=".json" style="display: none;">
+                    <button id="import-presets-btn" class="action-btn">プリセットをインポート</button>
+                </div>
+            </div>
         </div>
-    </div>
-
-    <hr>
-
-    <div class="setting-section">
-        <h2>設定のインポート / エクスポート</h2>
-        <p>現在のサイト設定をファイルに保存したり、ファイルから読み込んだりできます。</p>
-        <div class="setting-item">
-            <button id="export-settings-btn" class="action-btn">設定をエクスポート</button>
-            <input type="file" id="import-settings-file" accept=".json" style="display: none;">
-            <button id="import-settings-btn" class="action-btn">設定をインポート</button>
-        </div>
-    </div>
-
-    <hr>
-    <div class="danger-zone">
-        <h2>危険な操作</h2>
-        <p>この操作は元に戻せません。ご注意ください。</p>
-        <button id="reset-sites-btn" class="danger-btn">設定を初期状態に戻す</button>
     </div>
 
     <div id="toast-notification"></div>
@@ -95,5 +177,6 @@
         </div>
     </footer>
     <script src="options.js" type="module"></script>
+    <script src="preset-manager.js" type="module"></script>
 </body>
 </html>

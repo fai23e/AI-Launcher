@@ -108,6 +108,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log("デバッグ用：backgroundでメッセージを受信しました:", message);
 
   switch (message.action) {
+    case 'openOptionsPage':
+      chrome.runtime.openOptionsPage();
+      break;
+
+    case 'applyPresetFromPopup':
+        if (message.payload && message.payload.tabId) {
+            chrome.tabs.sendMessage(message.payload.tabId, {
+                action: 'applyPreset',
+                payload: message.payload
+            });
+        }
+        break;
+
     // ランチャーウィンドウを閉じるアクション
     case "closeLauncher": {
       if (launcherWindowId !== null) {

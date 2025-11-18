@@ -1,0 +1,77 @@
+/* src/popup/popup.css */
+body {
+    width: 320px;
+    font-family: sans-serif;
+    margin: 0;
+    background-color: #f9f9f9;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 480px; /* ポップアップの最大の高さ */
+}
+
+.popup-header {
+    padding: 15px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+}
+
+h1 {
+    font-size: 1.2em;
+    margin: 0 0 10px;
+    color: #333;
+}
+
+#popup-search {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+.popup-main {
+    flex-grow: 1;
+    overflow-y: auto;
+}
+
+#popup-preset-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.popup-preset-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+}
+
+.popup-preset-item:hover {
+    background-color: #eaeaea;
+}
+
+/* サイトがアクティブでない場合は少し薄く表示 */
+.popup-preset-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+
+.popup-footer {
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #ddd;
+    background-color: #f1f1f1;
+}
+
+#open-options-page {
+    color: #1976d2;
+    text-decoration: none;
+}
+
+#open-options-page:hover {
+    text-decoration: underline;
+}
