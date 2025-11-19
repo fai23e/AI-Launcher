@@ -17,5 +17,15 @@
       "description": "ランチャーを開く"
     }
   },
-  "action": {}
+  "action": {},
+  "content_scripts": [
+    {
+      "matches": ["*://*.youtube.com/watch?v=*"],
+      "js": ["src/content-scripts/youtube-summarizer.js"],
+      "css": ["src/content-scripts/youtube-summarizer.css"]
+    }
+  ],
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/"
+  ]
 }

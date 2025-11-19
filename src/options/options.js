@@ -12,13 +12,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const importSettingsFile = document.getElementById('import-settings-file');
     const windowSizeSelect = document.getElementById('window-size-select');
     const openActionRadios = document.querySelectorAll('input[name="open-action"]');
+    const geminiApiKeyInput = document.getElementById('gemini-api-key');
 
     // --- 設定の読み込み ---
     function loadSettings() {
-        // ウィンドウサイズの読み込み
-        chrome.storage.sync.get(['windowSize', 'openAction'], (data) => {
+        // ウィンドウサイズ・Gemini APIキー・起動方法の読み込み
+        chrome.storage.sync.get(['windowSize', 'openAction', 'geminiApiKey'], (data) => {
             if (data.windowSize) {
                 windowSizeSelect.value = data.windowSize;
+            }
+            if (data.geminiApiKey) {
+                geminiApiKeyInput.value = data.geminiApiKey;
             }
 
             const openAction = data.openAction || 'popup'; // デフォルトは 'popup'
@@ -47,6 +51,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(`起動方法を「${selectedAction === 'popup' ? 'ポップアップ' : '新しいタブ'}」に設定しました`);
             });
         });
+    });
+
+    // --- Gemini APIキーの保存 ---
+    let debounceTimer;
+    geminiApiKeyInput.addEventListener('input', () => {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const apiKey = geminiApiKeyInput.value.trim();
+            chrome.storage.sync.set({ geminiApiKey: apiKey }, () => {
+                showToast('Gemini APIキーを保存しました');
+            });
+        }, 500); // 500msのデバウンス
     });
 
     // 通知を表示する

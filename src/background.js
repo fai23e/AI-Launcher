@@ -127,6 +127,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     }
 
+    // YouTube動画の要約リクエスト
+    case 'summarizeVideo': {
+      (async () => {
+        try {
+          const data = await chrome.storage.sync.get('geminiApiKey');
+          const apiKey = data.geminiApiKey;
+
+          if (!apiKey) {
+            sendResponse({ success: false, error: 'APIキーが設定されていません。オプションページで設定してください。' });
+            return;
+          }
+
+          const videoUrl = message.url;
+          const prompt = `${videoUrl} の内容を、タイムスタンプを付けて箇条書きで要約してください。`;
+
+          const apiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{ text: prompt }]
+              }]
+            })
+          });
+
+          if (!apiResponse.ok) {
+            const errorBody = await apiResponse.json();
+            throw new Error(`APIエラー: ${errorBody.error?.message || '不明なエラー'}`);
+          }
+
+          const responseData = await apiResponse.json();
+          const summary = responseData.candidates[0].content.parts[0].text;
+
+          sendResponse({ success: true, summary: summary });
+
+        } catch (error) {
+          console.error('要約の生成中にエラーが発生しました:', error);
+          sendResponse({ success: false, error: error.message });
+        }
+      })();
+      return true; // 非同期レスポンスのためにtrueを返す
+    }
+
     default:
       // 未知のアクション
       console.warn("デバッグ用：未知のアクションを受信しました:", message.action);

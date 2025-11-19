@@ -1,0 +1,65 @@
+/*
+  youtube-summarizer.css
+  このファイルはYouTube要約機能のカスタムスタイルを定義します。
+*/
+
+#youtube-summarizer-window {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    width: 380px;
+    max-height: 500px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    font-family: 'Roboto', 'Arial', sans-serif;
+    color: #333;
+    display: none; /* 初期状態では非表示 */
+}
+
+#summarizer-window-header {
+    padding: 12px 16px;
+    background-color: #f1f1f1;
+    cursor: move; /* ヘッダーをドラッグ可能に */
+    border-bottom: 1px solid #ddd;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#summarizer-window-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+#summarizer-close-btn, #summarizer-copy-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: #666;
+}
+#summarizer-close-btn:hover, #summarizer-copy-btn:hover {
+    color: #000;
+}
+
+#summarizer-content {
+    padding: 16px;
+    overflow-y: auto;
+    max-height: 400px;
+    white-space: pre-wrap; /* 改行を反映 */
+    line-height: 1.6;
+    font-size: 14px;
+}
+
+#summarizer-content.loading::after {
+    content: '要約を生成中...';
+    display: block;
+    text-align: center;
+    color: #888;
+}
